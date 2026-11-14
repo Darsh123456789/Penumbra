@@ -114,6 +114,12 @@ def panel_factor(layout, saz, sel, heading_deg=0.0):
         return tot
     if layout == "tracking_mast":        # vertical panel that turns to face the Sun's azimuth
         return np.maximum(0.0, np.cos(el))
+    if layout == "vertical_4_on_side":   # same box lying on its side: one face up, one down, two still vertical
+        up = 0.25 * np.maximum(0.0, np.sin(el))
+        side = 0.0
+        for k in (0, 2):
+            side = side + 0.25 * np.maximum(0.0, np.cos(el) * np.cos(np.radians(saz - heading_deg - 90 * k)))
+        return up + side
     if layout == "horizontal_deck":
         return np.maximum(0.0, np.sin(el))
     raise ValueError(layout)
