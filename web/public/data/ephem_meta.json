@@ -1,0 +1,39 @@
+{
+  "description": "Apparent Sun and Earth position vectors (km) relative to the Moon centre",
+  "frame": "MOON_ME",
+  "abcorr": "LT+S",
+  "observer": "MOON",
+  "units": "km",
+  "layout": "little-endian float32, N rows x 3 (x, y, z)",
+  "start_utc": "2026-01-01T00:00:00",
+  "start_et_tdb_s": 820497669.18392,
+  "step_s": 3600.0,
+  "n": 61369,
+  "moon_radius_km": 1737.4,
+  "kernels": [
+    "naif0012.tls",
+    "de440s.bsp",
+    "moon_pa_de440_200625.bpc",
+    "moon_de440_250416.tf"
+  ],
+  "source": "NASA/JPL NAIF SPICE (DE440)",
+  "self_checks": {
+    "SUN": {
+      "max_deg": 1.5415284529485704e-05,
+      "median_deg": 6.037091348628668e-06
+    },
+    "EARTH": {
+      "max_deg": 0.00013109804847344245,
+      "median_deg": 4.633244706455042e-05
+    },
+    "pole_sun_elev_range_deg": [
+      -2.1267572833268686,
+      2.106470073813052
+    ],
+    "pole_earth_elev_range_deg": [
+      -7.544596803108705,
+      6.236816809262758
+    ]
+  },
+  "generated_utc": "2026-11-14T19:10:05Z"
+}
