@@ -1,0 +1,64 @@
+{
+  "source": "NASA/JPL Horizons API",
+  "window": [
+    "2027-02-14 00:00",
+    "2027-03-16 00:00",
+    "6 h"
+  ],
+  "results": [
+    {
+      "site": "Shackleton rim (approx.)",
+      "body": "SUN",
+      "horizons_site_echo": "222.7, -89.45, 3.85804E-13      {E-lon(deg),Lat(deg),Alt(km)}",
+      "n": 121,
+      "max_sep_deg": 8.537736462515939e-07,
+      "median_sep_deg": 0.0,
+      "max_abs_del_el_deg": 4.891510603233229e-07
+    },
+    {
+      "site": "Shackleton rim (approx.)",
+      "body": "EARTH",
+      "horizons_site_echo": "222.7, -89.45, 3.85804E-13      {E-lon(deg),Lat(deg),Alt(km)}",
+      "n": 121,
+      "max_sep_deg": 2.6863360635695186e-05,
+      "median_sep_deg": 1.878302021753515e-05,
+      "max_abs_del_el_deg": 2.6851071742051147e-05
+    },
+    {
+      "site": "Chandrayaan-3 Shiv Shakti",
+      "body": "SUN",
+      "horizons_site_echo": "32.319, -69.373, -4.09182E-13   {E-lon(deg),Lat(deg),Alt(km)}",
+      "n": 121,
+      "max_sep_deg": 1.2074182697257333e-06,
+      "median_sep_deg": 0.0,
+      "max_abs_del_el_deg": 5.389377335518475e-07
+    },
+    {
+      "site": "Chandrayaan-3 Shiv Shakti",
+      "body": "EARTH",
+      "horizons_site_echo": "32.319, -69.373, -4.09182E-13   {E-lon(deg),Lat(deg),Alt(km)}",
+      "n": 121,
+      "max_sep_deg": 2.5124746649533215e-05,
+      "median_sep_deg": 1.8251595920314006e-05,
+      "max_abs_del_el_deg": 2.5094817338811026e-05
+    },
+    {
+      "site": "Malapert Massif (approx.)",
+      "body": "SUN",
+      "horizons_site_echo": "0.0, -86.0, 3.86533E-13         {E-lon(deg),Lat(deg),Alt(km)}",
+      "n": 121,
+      "max_sep_deg": 8.537736462515939e-07,
+      "median_sep_deg": 0.0,
+      "max_abs_del_el_deg": 5.003516114765461e-07
+    },
+    {
+      "site": "Malapert Massif (approx.)",
+      "body": "EARTH",
+      "horizons_site_echo": "0.0, -86.0, 3.86533E-13         {E-lon(deg),Lat(deg),Alt(km)}",
+      "n": 121,
+      "max_sep_deg": 2.6686402191677665e-05,
+      "median_sep_deg": 1.9186176448475686e-05,
+      "max_abs_del_el_deg": 2.6695410525690022e-05
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "site": "Leibnitz beta plateau, Mons Mouton (PGDA 78 Site20v2)",
+  "dem": "Site20v2_final_adj_5mpp_surf.tif",
+  "far_field": "LDEM_80S_80MPP_ADJ.tiff",
+  "grid_n": 96,
+  "observer_height_m": 2.0,
+  "x_m": [
+    60300.0,
+    85700.0
+  ],
+  "y_m": [
+    105300.0,
+    130700.0
+  ],
+  "azimuth_bins": "360 x 1 deg, bin k centred on k+0.5 deg, clockwise from local north",
+  "layout": "little-endian float16, row-major [point, azimuth], points ordered y-major then x",
+  "max_range_km": 200.0,
+  "best_sunlit_point": {
+    "lat": -85.41303089254929,
+    "lon": 31.702698481823074,
+    "z_m": 6451.697449575832,
+    "sun_pct_2027": 74.48431199794754,
+    "earth_pct_2027": 61.14155251141552
+  }
+}

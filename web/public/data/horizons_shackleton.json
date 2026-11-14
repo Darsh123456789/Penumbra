@@ -1,0 +1,25 @@
+{
+  "site": "Shackleton rim (PGDA 78 Site04)",
+  "dem": "Site04_final_adj_5mpp_surf.tif",
+  "far_field": "LDEM_80S_80MPP_ADJ.tiff",
+  "grid_n": 96,
+  "observer_height_m": 2.0,
+  "x_m": [
+    -8700.0,
+    6700.0
+  ],
+  "y_m": [
+    -14700.0,
+    700.0
+  ],
+  "azimuth_bins": "360 x 1 deg, bin k centred on k+0.5 deg, clockwise from local north",
+  "layout": "little-endian float16, row-major [point, azimuth], points ordered y-major then x",
+  "max_range_km": 200.0,
+  "best_sunlit_point": {
+    "lat": -89.77972828108844,
+    "lon": 203.8625572418921,
+    "z_m": 1737.1456919324035,
+    "sun_pct_2027": 79.89473783972618,
+    "earth_pct_2027": 49.61187214611872
+  }
+}
