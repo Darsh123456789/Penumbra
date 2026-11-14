@@ -13,7 +13,8 @@ NASA Space Apps Challenge 2026 · Lunar Landing Site Navigator
 | 2. Terrain loading + raycaster (LOLA PGDA 78 + 90) | `pipeline/terrain.py` | Done |
 | 3. Horizons + 1-year illumination maps, 3 sites | `pipeline/03_horizons.py` | Done |
 | 4. Survival simulator + 2027 slip curves + default timelines | `pipeline/simulate.py`, `pipeline/04_simulate.py` | Done |
-| 5. Landing-uncertainty Monte Carlo + IM-2 replay | `pipeline/05_dispersion.py` | Next |
+| 5. Landing-uncertainty Monte Carlo + IM-2 replay | `pipeline/05_dispersion.py` | Done |
+| 6. Web app (Mission Board, panorama, dispersion, Trust) | `web/` | Next |
 
 ## Setup
 
@@ -26,6 +27,7 @@ python pipeline/01b_horizons_check.py
 # put the DEMs listed in docs/validation.md into data/dem/, then:
 python pipeline/03_horizons.py
 python pipeline/04_simulate.py
+python pipeline/05_dispersion.py   # ~30 min on 2 CPU cores
 ```
 
 Results and checks: [docs/validation.md](docs/validation.md).

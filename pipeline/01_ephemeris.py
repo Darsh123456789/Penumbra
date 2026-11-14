@@ -2,7 +2,7 @@
 Step 1 — Ephemeris table.
 
 Builds hourly Sun and Earth position vectors in the Moon-fixed MOON_ME frame
-(observer = Moon centre, aberration 'LT+S') for 2026-01-01 to 2033-01-01, and
+(observer = Moon centre, aberration 'LT+S') for 2023-01-01 to 2033-01-01, and
 exports them as compact float32 binaries for the browser plus an .npz for Python.
 
 Because these vectors are the same for every site, the browser only needs this
@@ -24,7 +24,7 @@ import spiceypy as sp
 
 import geometry as g
 
-START_UTC = "2026-01-01T00:00:00"
+START_UTC = "2023-01-01T00:00:00"
 STOP_UTC = "2033-01-01T00:00:00"
 STEP_S = 3600.0
 OUT_DIR = os.path.join(os.path.dirname(g.HERE), "web", "public", "data")
@@ -74,9 +74,9 @@ def self_checks(et0, ets, sun, earth):
     _, earth_el = g.az_el(earth - site, M)
     report["pole_sun_elev_range_deg"] = [float(sun_el.min()), float(sun_el.max())]
     report["pole_earth_elev_range_deg"] = [float(earth_el.min()), float(earth_el.max())]
-    print(f"  Sun elevation at 89.45S over 2026-2032 (flat horizon): "
+    print(f"  Sun elevation at 89.45S over 2023-2032 (flat horizon): "
           f"{sun_el.min():+.2f} to {sun_el.max():+.2f} deg")
-    print(f"  Earth elevation at 89.45S over 2026-2032 (flat horizon): "
+    print(f"  Earth elevation at 89.45S over 2023-2032 (flat horizon): "
           f"{earth_el.min():+.2f} to {earth_el.max():+.2f} deg")
     assert sun_el.max() < 2.5 and sun_el.min() > -2.5, "Sun elevation at the pole out of range: frame bug?"
     return report

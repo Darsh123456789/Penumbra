@@ -62,3 +62,33 @@ Slip curves, landing on each day of 2027 (best-lit point of each site):
 
 Finding: failed dates hit nights with a median length of 66-154 h, which no battery in these presets can bridge,
 so the landing date matters far more than battery size; even the best-lit points survive on only ~55-58% of days.
+
+## 6. Dispersion Cloud — landing uncertainty (Step 5, `pipeline/05_dispersion.py`)
+Grid of cells around the aim point (20 m cells on 5 m terrain), 10 terrain versions (nominal + 9 with correlated
+noise scaled by NASA's LOLA per-pixel height-error maps, 50 m correlation length), 14-day mission from 2027-02-14,
+mid-size generic preset, 3-sigma landing radius 400 m, 4,000 Monte Carlo touchdowns.
+
+| Site (aim = best-lit point) | Aim cell survives | P(survive) over the landing cloud | Lethal share of ellipse | Safer aim point |
+| --- | --- | --- | --- | --- |
+| Shackleton rim | 80% | **11.6%** | 93% | 263 m away -> 24% |
+| Malapert massif | 100% | **45.3%** | 75% | 388 m away -> 67% |
+| Leibnitz beta / Mons Mouton | 100% | **31.3%** | 82% | 382 m away -> 57% |
+
+Finding: judging a site by its best point overstates survival by a factor of 2-7 once landing accuracy is included.
+The best-lit spots are narrow crests; a 400 m landing error mostly lands on shadowed slopes, where the generic
+mid-size lander's battery reaches its floor in about 13 hours. Figures: `docs/figures/dispersion_*.png`.
+
+## 7. IM-2 Athena replay (80 m terrain)
+No NASA 5 m map (PGDA 78, 27 maps checked with `pipeline/00_find_site_maps.py`) covers IM-2's site
+(intended -84.78, 29.13 E per LROC), so the replay uses the PGDA 90 80 m map and its error map.
+
+* Landing 2025-03-06 17:31 UTC, 10-day mission, small generic preset: the intended site and the reported
+  (approximate) rest point are both sunlit for the whole mission (Sun 2.5-5.4 deg above a flat horizon), and the
+  whole 400 m ellipse survives on 80 m terrain.
+* A generic box lander tipped on its side loses 20-40% of mean power; depending on heading it reaches the
+  battery floor after 37 h to never.
+
+Interpretation: the crater Athena came to rest in is smaller than one 80 m pixel, so the shadow hazard that ended
+the mission is invisible in the best public map of that spot, and a generic lander model cannot reproduce the
+real ~13 h outcome. This is a data-resolution finding: sub-metre terrain (e.g. ISRO Chandrayaan-2 OHRC-derived
+DEMs) would be needed to resolve it. PENUMBRA reports this limit rather than tuning the model to match.
