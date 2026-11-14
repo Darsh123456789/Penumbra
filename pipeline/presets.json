@@ -1,0 +1,21 @@
+{
+  "_note": "Generic, editable lander presets for PENUMBRA. They are illustrative classes, NOT models of any real spacecraft.",
+  "small_vertical": {
+    "label": "Small solar lander, 4 vertical panels (generic)",
+    "panel_layout": "vertical_4", "panel_area_m2": 4.0, "panel_eff": 0.28, "charge_eff": 0.95,
+    "battery_wh": 1500, "load_w": 120, "heater_w": 40, "soc_floor": 0.20, "initial_soc": 1.0,
+    "earth_margin_deg": 1.0, "dsn_mask_deg": 10.0
+  },
+  "medium_vertical": {
+    "label": "Mid-size solar lander, 4 vertical panels (generic)",
+    "panel_layout": "vertical_4", "panel_area_m2": 8.0, "panel_eff": 0.28, "charge_eff": 0.95,
+    "battery_wh": 4000, "load_w": 220, "heater_w": 80, "soc_floor": 0.20, "initial_soc": 1.0,
+    "earth_margin_deg": 1.0, "dsn_mask_deg": 10.0
+  },
+  "tracking_mast": {
+    "label": "Lander with Sun-tracking vertical mast array (generic)",
+    "panel_layout": "tracking_mast", "panel_area_m2": 3.0, "panel_eff": 0.30, "charge_eff": 0.95,
+    "battery_wh": 2500, "load_w": 150, "heater_w": 60, "soc_floor": 0.20, "initial_soc": 1.0,
+    "earth_margin_deg": 1.0, "dsn_mask_deg": 10.0
+  }
+}

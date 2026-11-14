@@ -42,3 +42,23 @@ Bug found and fixed: a compiler speed flag removed the check that switches rays 
 80 m map, so distant terrain was ignored. After the fix the crater interior went from about 25% to 0% sunlit.
 
 Figures: `docs/figures/illum_*.png`.
+
+## 5. Survival simulator (Step 4, `pipeline/simulate.py`, `pipeline/04_simulate.py`)
+10-minute steps, 14-day missions, generic presets in `pipeline/presets.json` (not real spacecraft).
+
+DSN model check (14-28 Feb 2027): Moon above 10 deg at Goldstone 44.7%, Madrid 42.8%, Canberra 39.9% of the time;
+at least one complex 98.8%. Each station sees the Moon roughly 10 h a day, as expected.
+
+Default scenario, Shackleton best point, landing 2027-02-14, mid-size preset: 97.4% sunlit, Earth in view 41.1%,
+longest direct-to-Earth blackout 198 h, survives.
+
+Slip curves, landing on each day of 2027 (best-lit point of each site):
+
+| Site | Landing days that survive 14 days (small / mid-size / tracking mast) | Typical point |
+| --- | --- | --- |
+| Shackleton rim | 55% / 56% / 56% | 0% |
+| Malapert massif | 57% / 58% / 58% | 0% |
+| Leibnitz beta / Mons Mouton | 55% / 56% / 56% | 0% |
+
+Finding: failed dates hit nights with a median length of 66-154 h, which no battery in these presets can bridge,
+so the landing date matters far more than battery size; even the best-lit points survive on only ~55-58% of days.
