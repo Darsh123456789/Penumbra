@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { utcToEt, json, loadDsn, loadEphem, loadHorizons, horizonAtIndex, nearestIndex, simulate, bareMoonDip, PRESETS, fmtH, type Dsn, type Ephem, type HorizonGrid, type Preset, type SimResult } from './engine';
+import { utcToEt, siteVector, enu, json, loadDsn, loadEphem, loadHorizons, horizonAtIndex, nearestIndex, simulate, bareMoonDip, PRESETS, fmtH, type Dsn, type Ephem, type HorizonGrid, type Preset, type SimResult } from './engine';
 import { FIELDS, LAYOUTS, shown, setField, fromPreset, encode, decode, loadStored, store, peakSolarW, neverCharges, survivalYearLive } from './lander';
 import { Panorama, Timeline } from './charts';
-import { relayFn, relayAbovePct, RELAY_LABEL, ELEMENT_NOTES, type RelayMode } from './relay';
+import { relayFn, relayAbovePct, relayState, RELAY_LABEL, ELEMENT_NOTES, type RelayMode } from './relay';
 
 export const SITES = [
   { key: 'shackleton', name: 'Shackleton rim' },
@@ -111,7 +111,11 @@ export default function MissionBoard() {
     const f = relayFn(relay, eng.e, eng.d, H0, pinfo.lat, pinfo.lon, P.earth_margin_deg ?? 1);
     return { now: simulate(eng.e, eng.d, H0, pinfo.lat, pinfo.lon, dayIso(day), 14, P, dip, f),
       planned: simulate(eng.e, eng.d, H0, pinfo.lat, pinfo.lon, dayIso(PLANNED), 14, P, dip, f),
-      above: relayAbovePct(relay, eng.e, eng.d, H0, pinfo.lat, pinfo.lon, utcToEt(dayIso(day)), 14, P.earth_margin_deg ?? 1) };
+      above: relayAbovePct(relay, eng.e, eng.d, H0, pinfo.lat, pinfo.lon, utcToEt(dayIso(day)), 14, P.earth_margin_deg ?? 1) ,
+      track: (() => {   // hourly sky track of the relay(s) for the Panorama
+        const S = siteVector(pinfo.lat, pinfo.lon), M = enu(pinfo.lat, pinfo.lon), et0 = utcToEt(dayIso(day)), t = { az: [] as number[], el: [] as number[], up: [] as boolean[] };
+        for (const ph of relay === 'two' ? [0, 180] : [0]) for (let h = 0; h < 14 * 24; h++) { const r = relayState(eng.e, eng.d, H0, S, M, et0 + h * 3600, ph, P.earth_margin_deg ?? 1); t.az.push(r.az); t.el.push(r.el); t.up.push(r.aboveHorizon); }
+        return t; })() };
   }, [relay, eng, pinfo, site, day, lander]);
   const slopeOf = (s: string, pt: string) => meta?.sites?.[s]?.[pt]?.slope_deg as number | undefined;
   // Custom lander: no Python track exists, so the 2027 survival track is computed live (365 simulate calls).
@@ -235,7 +239,7 @@ export default function MissionBoard() {
         <h2>360° horizon from {siteName} ({POINTS.find(p => p[0] === point)![1].toLowerCase()}), panel height 2 m</h2>
         <span className="small mute">Real LOLA horizon, no atmosphere so no refraction · Sun and Earth paths for the 14 days from {dayLabel(day)}</span>
       </div>
-      {H && live ? <Panorama H={H} res={live} /> : <span className="mute">computing…</span>}
+      {H && live ? <Panorama H={H} res={live} relay={relayRuns?.track} /> : <span className="mute">computing…</span>}
     </section>
 
     <section className="panel">
@@ -243,7 +247,7 @@ export default function MissionBoard() {
         <h2>First 14 days after landing on {dayLabel(day)}</h2>
         {live && py && <span className="small mute">Computed live in your browser · matches the Python pipeline: sunlit {live.sunlit_pct.toFixed(1)}% vs {py.sunlit_pct}%, survives {String(live.survives)} vs {String(py.survives)}</span>}
       </div>
-      {live ? <Timeline res={live} /> : <span className="mute">computing…</span>}
+      {live ? <Timeline res={live} relayOnly={relayRuns ? relayRuns.now.series.link.map((v, i) => v && !live.series.link[i]) : undefined} /> : <span className="mute">computing…</span>}
     </section>
   </>);
 }

@@ -82,7 +82,7 @@ sites), Stand on the rim (first-person view, your-city comparison, sonified luna
   Malapert 174 → 4.5 → 0.8 h, Leibnitz beta 167 → 4.5 → 0.8 h. Median reduction over all 2027 landing days (1 relay):
   172 / 145 / 138 h. With the relay the blackout is never longer than direct-only (asserted, `web/scripts/relay_check.sh`).
 - UI: Mission Board toggle (Off / 1 / 2 relays), card link bar + "was X%", readout rows, assumptions table; Why? line;
-  Provenance sources. Not done: Timeline relay lane, Panorama relay track, Python twin (relay is browser-only).
+  Provenance sources; Timeline "relay-only link" lane; Panorama relay sky track. Not done: Python twin (relay is browser-only).
 
 ## Lander editor (Task 2, 15 Nov evening) — on main
 - Mission Board has a **"Your lander" editor**: a "Custom (edit below)" lander option plus an inline editor (battery, panel area,
