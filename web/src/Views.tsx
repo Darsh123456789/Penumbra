@@ -22,7 +22,7 @@ export function Dispersion() {
   return (<>
     <section className="panel">
       <div className="row" style={{ alignItems: 'flex-end', justifyContent: 'space-between' }}>
-        <div><h1>The landing is a cloud, not a point</h1>
+        <div><h1>The landing is a cloud, not a point</h1><p className="small mute" style={{ margin: '4px 0 0' }}>Computed for the generic presets; use the Mission Board for a custom lander.</p>
           <p className="mute" style={{ margin: '6px 0 0', maxWidth: 900, lineHeight: 1.5 }}>Thousands of possible touchdown points across the landing ellipse, each run on 10 versions of the terrain built from NASA's LOLA height-error maps. Each cell shows the chance a solar-powered lander keeps its battery above the survival floor for the whole mission.</p></div>
         <label className="field">Case<select value={cs} onChange={e => setCs(e.target.value)}>{CASES.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select></label>
       </div>
@@ -88,7 +88,7 @@ export function PlanB() {
   return (<>
     <section className="panel">
       <div className="row" style={{ justifyContent: 'space-between', alignItems: 'flex-end' }}>
-        <div><h1>Plan B Finder</h1><p className="mute" style={{ margin: '6px 0 0' }}>When the launch slips, search nearby points and dates for the best alternative, every option checked by the exact simulator.</p></div>
+        <div><h1>Plan B Finder</h1><p className="mute" style={{ margin: '6px 0 0' }}>When the launch slips, search nearby points and dates for the best alternative, every option checked by the exact simulator.</p><p className="small mute" style={{ margin: '4px 0 0' }}>Computed for the generic presets; use the Mission Board for a custom lander.</p></div>
         <label className="field">Site<select value={site} onChange={e => setSite(e.target.value)}>{SITES.map(s => <option key={s.key} value={s.key}>{s.name}</option>)}</select></label>
       </div>
       {pb === undefined ? <span className="mute">loading…</span> : pb === null ? <Pending what="Plan B search" /> : <>
