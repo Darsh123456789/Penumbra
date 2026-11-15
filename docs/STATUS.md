@@ -1,0 +1,65 @@
+# PENUMBRA — project status and overview (read this first)
+
+PENUMBRA is a NASA Space Apps Challenge 2026 project for the "Lunar Landing Site Navigator" challenge: a
+slip-proof lunar south-pole landing navigator. It treats a landing as a cloud of possible points and dates, simulates
+whether a solar-powered lander survives (power, battery, direct-to-Earth comms through NASA's Deep Space Network),
+finds a Plan B when the launch slips, and explains why results change. NASA data first; partner data as cross-checks.
+
+- Repository: https://github.com/Darsh123456789/penumbra (public, branch `main`)
+- Live app (GitHub Pages, redeploys on every push to main): https://darsh123456789.github.io/Penumbra/
+- Submission deadline: Sunday 15 Nov 2026, 23:59 IST (local event). Internal code freeze 22:15 IST.
+
+## Rules for every chat working on this project
+1. Every number must be produced by code in the repo. Never invent or estimate results; write "—"/`not_available`.
+2. Write only the files assigned to your stream (see `INTERFACES.md`), with the exact JSON shapes given there.
+3. Push to your own branch (`ai-track` or `validation-track`), never directly to `main`; the main chat merges.
+4. Conventions: Moon-fixed frame MOON_ME, sphere R = 1737.4 km, planetocentric latitude, EAST-positive longitude,
+   azimuth clockwise from local north, apparent directions (LT+S), no refraction. Map x/y = NASA south polar
+   stereographic metres (lat_0 = -90, lon_0 = 0).
+5. Lander presets are generic and editable, never real spacecraft.
+
+## Pipeline (Python, `pipeline/`) — status
+| Step | Script | Status |
+| --- | --- | --- |
+| 1 Sun/Earth ephemeris table 2023–2032 (SPICE DE440) | `01_ephemeris.py` | Done |
+| 1b Check vs NASA/JPL Horizons | `01b_horizons_check.py` | Done: max 0.000027° |
+| 1c Chandrayaan-3 sunrise/sunset (flat horizon) | `01c_chandrayaan3_check.py` | Done: matches ISRO timeline |
+| 2–3 LOLA terrain + horizon raycaster, 3 sites × 9,216 points, rays to 200 km | `terrain.py`, `03_horizons.py` | Done |
+| 4 Survival simulator + 2027 slip curves | `simulate.py`, `04_simulate.py` | Done |
+| 5 Landing-uncertainty Monte Carlo + IM-2 replay | `05_dispersion.py` | Done |
+| 6 Validation extras (PGDA 69, shadow overlay, CH-3 terrain) | `06_validate.py` | Stream B (Prompt 2) |
+| 7 Plan B search | `07_planb.py` | Stream B (Prompt 2) |
+| 8 Why? attribution | `08_why.py` | Stream B (Prompt 2) |
+| AI: HELIOS + SURVIVOR + gate | `ai/` | Stream A (Prompt 1) |
+| Web exports (DSN bitset, sites) | `09_export_web.py` | Done |
+
+## Web app (`web/`, React + Vite + TypeScript) — status
+Six screens, live: Mission Board (slip slider over 2027, 4 cards, 360° horizon, 14-day timeline computed in the
+browser), Landing cloud (dispersion heatmaps + IM-2 replay), Plan B + Why? (waiting for Stream B files), Trust
+(4 live checks + data provenance; PGDA 69 and shadow panels waiting for Stream B), AI Lab (waiting for Stream A),
+Stand on the rim (first-person view, your-city comparison, sonified lunar day). Panels without data say "pending".
+
+## Measured results so far (details in `validation.md`)
+- Horizons agreement: max 2.7e-5°. Hourly-table error: Sun 1.5e-5°, Earth 1.3e-4°.
+- Browser TypeScript simulator vs Python: agrees on survival on 365/365 landing days, max sunlit difference 0.00 pts.
+- Best-lit points, 2027 sunlight: Shackleton rim 79.9%, Malapert 80.3%, Leibnitz beta / Mons Mouton 74.5%.
+  Shackleton crater interior 0% (known permanent shadow).
+- Landing days in 2027 where a 14-day mission survives (best points): 55–58%; typical points 0%. Failed dates hit
+  nights with median length 66–154 h, so the landing date matters far more than battery size.
+- DSN: Moon above 10° at ≥1 complex 98.4% of the time (2023–2032).
+- Dispersion (400 m 3σ ellipse, 10 terrain versions from LOLA error maps, 4,000 touchdowns):
+  Shackleton P(survive) 11.6% vs 80% at the aim cell; Malapert 45.3% vs 100%; Leibnitz beta 31.3% vs 100%.
+  Safer aim points 263–388 m away roughly double the odds.
+- IM-2 replay: no NASA 5 m map covers the site (27 checked); on 80 m terrain the whole ellipse stays sunlit — the
+  crater Athena came to rest in is smaller than one pixel. Reported as a data-resolution finding.
+- Chandrayaan-3 (flat horizon): sunrise 21 Aug, sunset 4 Sep, next sunrise 19 Sep 2023 vs landing 23 Aug,
+  sleep 2–4 Sep, expected wake ~22 Sep.
+
+## Data that is NOT in Git (must be attached to chats that need it)
+- `pipeline/out/ephemeris_hourly.npz`, `pipeline/out/horizons_<site>.npz` — in "Prompt 1/2 - pipeline outputs.zip".
+- NASA LOLA DEMs in `data/dem/`: `Site04/Site20v2/Site23_final_adj_5mpp_surf.tif` (+ `_toterr.tif`),
+  `LDEM_80S_80MPP_ADJ.tiff` (+ `_ERR.tiff`) from https://pgda.gsfc.nasa.gov/products/78 and /90.
+
+## Key documents in this project
+`STATUS.md` (this file) · `INTERFACES.md` (exact output file formats) · `validation.md` (measured results log) ·
+`README.md` (setup) · `PROMPT_1_AI.md` · `PROMPT_2_VALIDATION.md`.

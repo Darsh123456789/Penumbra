@@ -14,7 +14,11 @@ NASA Space Apps Challenge 2026 · Lunar Landing Site Navigator
 | 3. Horizons + 1-year illumination maps, 3 sites | `pipeline/03_horizons.py` | Done |
 | 4. Survival simulator + 2027 slip curves + default timelines | `pipeline/simulate.py`, `pipeline/04_simulate.py` | Done |
 | 5. Landing-uncertainty Monte Carlo + IM-2 replay | `pipeline/05_dispersion.py` | Done |
-| 6. Web app (Mission Board, panorama, dispersion, Trust) | `web/` | Next |
+| 6. Web app: Mission Board, landing cloud, Plan B + Why?, Trust, AI Lab, rim view | `web/` | Done, live: https://darsh123456789.github.io/Penumbra/ |
+| 7. Validation extras, Plan B, Why? | `pipeline/06_*`–`08_*` | In progress (branch `validation-track`) |
+| 8. AI: HELIOS + SURVIVOR | `ai/` | In progress (branch `ai-track`) |
+
+Web app: `cd web && npm install && npm run dev`. Data contracts between work streams: [docs/INTERFACES.md](docs/INTERFACES.md). Status: [docs/STATUS.md](docs/STATUS.md).
 
 ## Setup
 
