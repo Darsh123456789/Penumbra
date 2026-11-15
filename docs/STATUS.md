@@ -80,3 +80,10 @@ sites), Stand on the rim (first-person view, your-city comparison, sonified luna
 ## Key documents in this project
 `STATUS.md` (this file) · `INTERFACES.md` (exact output file formats) · `validation.md` (measured results log) ·
 `README.md` (setup) · `PROMPT_1_AI.md` · `PROMPT_2_VALIDATION.md`.
+
+## Enhancement 1 — Pick any spot (15 Nov 2026, 22:50 IST)
+- `pipeline/11_point_grid.py` → `web/public/data/grid_<site>.json`: for all 9,216 horizon points per site, height, 2027 Sun / Earth / both % (step 3) and Horn 3×3 slope on the 5 m LOLA map (same method as Plan B). Landable (< 8°): Shackleton 1,076, Malapert 987, Leibnitz beta 2,121 points.
+- Mission Board: clickable site map (colour by sunlight, Earth, both or slope; dim > 8°). A picked point drives both main cards, the engineering readout, panorama, timeline, CSV/JSON export (with grid index), the share link (`&pt=custom&k=`), and "Stand on the rim".
+- The 2027 survival track for a picked point is computed live (365 × 14-day sims, about 1 s). Check: picking the best-lit grid index reproduces Python's survivable-day count exactly (206 / 211 / 204 of 365 at Shackleton / Malapert / Leibnitz beta, medium lander).
+- "Plan B for this spot on this date": live re-simulation of every landable point within 2 km for the selected date and lander, ranked survivors-first then by distance.
+- Not extended to a picked point: Landing cloud (needs 10 terrain variants × 4,000 draws, Python) and the Python Why? attribution. Those tabs stay on the reference points.

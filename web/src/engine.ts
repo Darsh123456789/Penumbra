@@ -80,6 +80,26 @@ export function latlonToXY(lat: number, lon: number): [number, number] {
   const rho = 2 * R_M * Math.tan(((90 + lat) * Math.PI / 180) / 2);
   return [rho * Math.sin(lon * Math.PI / 180), rho * Math.cos(lon * Math.PI / 180)];
 }
+export function xyToLatLon(x: number, y: number): [number, number] {
+  const rho = Math.hypot(x, y);
+  return [2 * Math.atan(rho / (2 * R_M)) * 180 / Math.PI - 90, ((Math.atan2(x, y) * 180 / Math.PI) + 360) % 360];
+}
+export function gridXY(g: HorizonGrid, k: number): [number, number] {
+  const i = k % g.n, j = Math.floor(k / g.n);
+  return [g.x0 + i * (g.x1 - g.x0) / (g.n - 1), g.y0 + j * (g.y1 - g.y0) / (g.n - 1)];
+}
+export interface PointGrid { n: number; z_m: number[]; sun: number[]; earth: number[]; both: number[]; slope: (number | null)[]; landing_slope_limit_deg: number }
+export const loadGrid = (site: string) => json<any>(`grid_${site}.json`).then(g => ({ ...g, n: g.n ?? g.grid_n }) as PointGrid);
+// 365 landing days in 2027, each a 14-day mission; yields to the browser between chunks.
+export async function survivalYear(e: Ephem, d: Dsn, H: Float64Array, lat: number, lon: number, p: Preset, dip: number, cancelled: () => boolean): Promise<boolean[] | null> {
+  const out: boolean[] = [];
+  for (let day = 0; day < 365; day++) {
+    if (day % 15 === 0) { await new Promise(r => setTimeout(r, 0)); if (cancelled()) return null; }
+    const iso = new Date(Date.UTC(2027, 0, 1) + day * 86400000).toISOString().slice(0, 19);
+    out.push(simulate(e, d, H, lat, lon, iso, 14, p, dip, true).survives);
+  }
+  return out;
+}
 export function siteVector(lat: number, lon: number): V3 {
   const la = lat * Math.PI / 180, lo = lon * Math.PI / 180;
   return [R_MOON * Math.cos(la) * Math.cos(lo), R_MOON * Math.cos(la) * Math.sin(lo), R_MOON * Math.sin(la)];
@@ -149,7 +169,7 @@ export interface SimResult { sunlit_pct: number; earth_pct: number; both_pct: nu
 // geoHorizonDeg: horizon of a bare, smooth Moon for an observer at this height (negative: the dip). Darkness with the
 // Sun above it but below the LOLA horizon is caused by terrain; below it, by the Moon's curvature alone.
 export function bareMoonDip(heightAboveDatumM: number): number { return -Math.acos(R_M / (R_M + Math.max(0, heightAboveDatumM))) * 180 / Math.PI; }
-export function simulate(e: Ephem, d: Dsn, H: Float64Array, lat: number, lon: number, startIso: string, days: number, p: Preset, geoHorizonDeg = 0): SimResult {
+export function simulate(e: Ephem, d: Dsn, H: Float64Array, lat: number, lon: number, startIso: string, days: number, p: Preset, geoHorizonDeg = 0, lite = false): SimResult {
   const et0 = utcToEt(startIso), n = Math.round(days * 86400 / STEP_S), dt = STEP_S / 3600;
   const S = siteVector(lat, lon), M = enu(lat, lon);
   const ser = { t_h: [] as number[], f_sun: [] as number[], earth_up: [] as boolean[], dsn: [] as boolean[], link: [] as boolean[], soc: [] as number[],
@@ -182,14 +202,16 @@ export function simulate(e: Ephem, d: Dsn, H: Float64Array, lat: number, lon: nu
     energy = Math.min(p.battery_wh, Math.max(0, energy + (pin * p.charge_eff - load) * dt));
     const soc = energy / p.battery_wh;
     minSoc = Math.min(minSoc, soc);
-    if (tFloor === null && soc < p.soc_floor) tFloor = i * dt;
+    if (tFloor === null && soc < p.soc_floor) { tFloor = i * dt; if (lite) break; }
     if (f > 0.5) lit++; if (up) eup++; if (f > 0.5 && up) both++; if (link) lk++;
     night = f < 0.5 ? night + 1 : 0; nightMax = Math.max(nightMax, night);
     bo = !link ? bo + 1 : 0; boMax = Math.max(boMax, bo);
     if (sunset === null && sunUp0 && f < 0.5) sunset = i * dt;
     if (earthset === null && earthUp0 && !up) earthset = i * dt;
+    if (!lite) {
     ser.t_h.push(i * dt); ser.f_sun.push(f); ser.earth_up.push(up); ser.dsn.push(ds); ser.link.push(link); ser.soc.push(soc);
     ser.sun_az.push(sa); ser.sun_el.push(se); ser.earth_az.push(ea); ser.earth_el.push(ee);
+    }
   }
   return { sunlit_pct: 100 * lit / n, earth_pct: 100 * eup / n, both_pct: 100 * both / n, link_pct: 100 * lk / n,
     longest_night_h: nightMax * dt, longest_blackout_h: boMax * dt, energy_in_kwh: ein / 1000, min_soc: minSoc,
