@@ -43,3 +43,7 @@ table.t td { padding:8px 6px; border-bottom:1px solid var(--line); }
 svg text { font-family:Inter,sans-serif; }
 footer { padding:16px 20px 30px; color:var(--mute); font-size:12px; max-width:1440px; margin:0 auto; line-height:1.6; }
 @media (max-width:700px) { main { padding:12px; } .big { font-size:28px; } }
+.lander-editor { display:flex; flex-direction:column; gap:10px; border:1px solid var(--line); border-radius:10px; padding:12px; min-width:0; }
+.lander-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:10px 16px; min-width:0; }
+.lander-grid label.field { min-width:0; }
+@media (max-width:420px) { .lander-grid { grid-template-columns:1fr; } }
