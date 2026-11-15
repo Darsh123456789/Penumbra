@@ -92,3 +92,38 @@ Interpretation: the crater Athena came to rest in is smaller than one 80 m pixel
 the mission is invisible in the best public map of that spot, and a generic lander model cannot reproduce the
 real ~13 h outcome. This is a data-resolution finding: sub-metre terrain (e.g. ISRO Chandrayaan-2 OHRC-derived
 DEMs) would be needed to resolve it. PENUMBRA reports this limit rather than tuning the model to match.
+
+## 8. Stream B — validation extras, Plan B, Why? (`pipeline/06_validate.py`, `07_planb.py`, `08_why.py`)
+
+### 8a. Copied checks (`validation.json`)
+Horizons: max separation 2.7e-05 deg, median 9.1e-06 deg (6 cases, 726 epochs). Interpolation: Sun max 1.5e-05 deg, Earth max 1.3e-04 deg. Chandrayaan-3 flat horizon (re-run): sunrise 2023-08-21T10:30, sunset 2023-09-04T16:10, next sunrise 2023-09-19T19:30 UTC.
+
+### 8b. NASA PGDA 69 average illumination
+not_available: missing in data/dem/: AVGVISIB_85S_060M_201608.TIF, Site04_final_adj_5mpp_surf.tif, Site23_final_adj_5mpp_surf.tif, Site20v2_final_adj_5mpp_surf.tif, LDEM_80S_80MPP_ADJ.tiff
+
+### 8c. Shadow truth vs LROC NAC
+not_available: No LROC NAC image could be obtained: this build environment has no access to the LROC archive (data.lroc.im-ldi.com / QuickMap), and no image was supplied in data/lroc/.
+
+### 8d. Chandrayaan-3 with terrain
+not_available: PENUMBRA's 5 m and 80 m maps stop at 80 S; a LOLA DEM covering 69.37 S (PGDA 90 LDEM_60S_240MPP_ADJ.TIF) was not available in data/dem/.
+
+### 8e. Plan B after a 12-day slip (2027-02-14 → 2027-02-26, mid-size preset, 14 days)
+Search: grid points within 2 km of the best-lit point with slope < 8°, landing on the slipped date ±5 days; ranked by survives, then shortest direct-to-Earth blackout, then most sunlight.
+
+| Site | Original on slipped date | Candidates (points × days) | Surviving | Option A | Original point survives if shifted |
+| --- | --- | --- | --- | --- | --- |
+| Shackleton rim | fails (85.1% sunlit, battery floor at 130 h) | 28 × 11 = 308 | 0 | 162 m at 66°, +5 d: fails, 24.0% sunlit, blackout 86.0 h | +6 d |
+| Malapert massif | fails (54.6% sunlit, battery floor at 197 h) | 156 × 11 = 1716 | 0 | 1635 m at 291°, +5 d: fails, 18.9% sunlit, blackout 0.8 h | -6 d |
+| Leibnitz beta / Mons Mouton | fails (24.9% sunlit, battery floor at 65 h) | 98 × 11 = 1078 | 0 | 378 m at 13°, +5 d: fails, 24.6% sunlit, blackout 0.8 h | -12 d |
+
+Slope source: 96x96 analysis-grid heights, central differences (~324 m baseline); 5 m map not in data/dem/.
+
+### 8f. Why? (sunlit % at the best-lit point, A = 2027-02-14, B = 2027-02-26)
+
+| Site | A | B | Sun path | Earth path (sunlit / link) | Terrain (B real − B flat) | Panel 5 m vs 2 m (B) | Blocking ridge |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Shackleton rim | 97.4 | 85.1 | -12.2 | +0.0 / -2.3 | +85.1 | n/a | az 31.5° (raycast n/a) |
+| Malapert massif | 100.0 | 54.6 | -45.4 | +0.0 / -1.1 | +41.6 | n/a | az 131.5° (raycast n/a) |
+| Leibnitz beta / Mons Mouton | 100.0 | 24.9 | -75.0 | +0.0 / -0.5 | +24.9 | n/a | az 100.5° (raycast n/a) |
+
+One-at-a-time swaps; bars need not add up. Earth's path cannot change sunlight (measured 0), only the comms metric link_pct. The terrain bar is large and positive because a flat 0° horizon hides most or all of the Sun on these dates: the best-lit points sit high enough that their real horizon dips below 0° in the Sun's direction.
