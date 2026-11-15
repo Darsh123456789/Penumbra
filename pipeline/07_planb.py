@@ -10,7 +10,7 @@ the launch slips 12 days to 2027-02-26 00:00 UTC.
     point whose local slope is < 8 deg. Slope comes from the 5 m PGDA 78 map over a 3x3
     window (15 m baseline, Horn's method) when the map is in data/dem/; otherwise from the
     96 x 96 grid heights (central differences, ~324 m baseline), and the JSON says which.
-  * Landing dates = slipped date +-5 days, 00:00 UTC each day.
+  * Landing dates = slipped date +-6 days, 00:00 UTC each day (widened from +-5 by the team: at +-5 no option survives).
   * Ranking: survives first, then lowest longest_blackout_h, then highest sunlit_pct.
   * Top 3 -> options A, B, C (distance and bearing from the original point; bearing is
     clockwise from local north at the original point).
@@ -33,7 +33,7 @@ SITES = {"shackleton": "Site04_final_adj_5mpp_surf.tif", "malapert": "Site23_fin
          "leibnitz_beta": "Site20v2_final_adj_5mpp_surf.tif"}
 PRESET = "medium_vertical"
 PLANNED, SLIPPED, SLIP_DAYS, MISSION_DAYS = "2027-02-14T00:00:00", "2027-02-26T00:00:00", 12, 14
-RADIUS_M, MAX_SLOPE, WINDOW = 2000.0, 8.0, 5
+RADIUS_M, MAX_SLOPE, WINDOW = 2000.0, 8.0, 6
 WEB = os.path.join(os.path.dirname(g.HERE), "web", "public", "data")
 DEM_DIR = os.environ.get("PENUMBRA_DATA", os.path.join(os.path.dirname(g.HERE), "data", "dem"))
 
@@ -151,7 +151,7 @@ def run(site, P, dsn_by_day):
     with open(os.path.join(WEB, f"planb_{site}.json"), "w") as f:
         json.dump(out, f, indent=2)
     print(f"{site:14s} {time.time() - t:5.1f} s | original on slipped date: survives={orig['survives']} "
-          f"sunlit {orig['sunlit_pct']:.1f}% blackout {orig['longest_blackout_h']:.0f} h | {len(ok)} pts x 11 days, "
+          f"sunlit {orig['sunlit_pct']:.1f}% blackout {orig['longest_blackout_h']:.0f} h | {len(ok)} pts x {2 * WINDOW + 1} days, "
           f"{n_surv} survive | A: {options[0]['distance_m']:.0f} m @ {options[0]['bearing_deg']:.0f} deg, "
           f"shift {options[0]['date_shift_days']:+d} d, blackout {options[0]['longest_blackout_h']:.0f} h")
     return out
