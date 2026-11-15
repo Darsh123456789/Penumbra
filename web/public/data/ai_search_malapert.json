@@ -27,7 +27,9 @@
    "ood": false,
    "verified_survives": true,
    "verified_sunlit_pct": 100.0,
-   "tag": "physics-verified"
+   "tag": "physics-verified",
+   "slope_deg": 5.36,
+   "landable": true
   },
   {
    "rank": 2,
@@ -45,7 +47,9 @@
    "ood": false,
    "verified_survives": true,
    "verified_sunlit_pct": 100.0,
-   "tag": "physics-verified"
+   "tag": "physics-verified",
+   "slope_deg": 7.84,
+   "landable": true
   },
   {
    "rank": 3,
@@ -63,7 +67,9 @@
    "ood": false,
    "verified_survives": true,
    "verified_sunlit_pct": 100.0,
-   "tag": "physics-verified"
+   "tag": "physics-verified",
+   "slope_deg": 8.64,
+   "landable": false
   },
   {
    "rank": 4,
@@ -81,7 +87,9 @@
    "ood": false,
    "verified_survives": true,
    "verified_sunlit_pct": 100.0,
-   "tag": "physics-verified"
+   "tag": "physics-verified",
+   "slope_deg": 12.29,
+   "landable": false
   },
   {
    "rank": 5,
@@ -99,7 +107,9 @@
    "ood": false,
    "verified_survives": true,
    "verified_sunlit_pct": 100.0,
-   "tag": "physics-verified"
+   "tag": "physics-verified",
+   "slope_deg": 12.7,
+   "landable": false
   },
   {
    "rank": 6,
@@ -117,7 +127,9 @@
    "ood": false,
    "verified_survives": true,
    "verified_sunlit_pct": 100.0,
-   "tag": "physics-verified"
+   "tag": "physics-verified",
+   "slope_deg": 13.63,
+   "landable": false
   },
   {
    "rank": 7,
@@ -135,7 +147,9 @@
    "ood": false,
    "verified_survives": true,
    "verified_sunlit_pct": 100.0,
-   "tag": "physics-verified"
+   "tag": "physics-verified",
+   "slope_deg": 14.17,
+   "landable": false
   },
   {
    "rank": 8,
@@ -153,7 +167,9 @@
    "ood": false,
    "verified_survives": true,
    "verified_sunlit_pct": 100.0,
-   "tag": "physics-verified"
+   "tag": "physics-verified",
+   "slope_deg": 11.89,
+   "landable": false
   },
   {
    "rank": 9,
@@ -171,7 +187,9 @@
    "ood": false,
    "verified_survives": true,
    "verified_sunlit_pct": 100.0,
-   "tag": "physics-verified"
+   "tag": "physics-verified",
+   "slope_deg": 19.49,
+   "landable": false
   },
   {
    "rank": 10,
@@ -189,7 +207,10 @@
    "ood": false,
    "verified_survives": true,
    "verified_sunlit_pct": 100.0,
-   "tag": "physics-verified"
+   "tag": "physics-verified",
+   "slope_deg": 17.24,
+   "landable": false
   }
- ]
+ ],
+ "slope_note": "slope_deg added by pipeline/10_point_meta.py (PGDA 78 5 m map, 3x3 Horn window (15 m baseline)); landable = slope < 8.0 deg"
 }
