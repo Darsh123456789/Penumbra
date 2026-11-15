@@ -11,7 +11,10 @@ const CASES = [['shackleton', 'Shackleton rim'], ['malapert', 'Malapert massif']
 export function Dispersion() {
   const [cs, setCs] = useState('shackleton');
   const [d, setD] = useState<any>(null);
+  const [pm, setPm] = useState<any>(null);
   useEffect(() => { setD(null); json(`dispersion_${cs}.json`).then(setD); }, [cs]);
+  useEffect(() => { optionalJson('points_meta.json').then(setPm); }, []);
+  const aimSlope = pm?.sites?.[cs]?.dispersion_aim?.slope_deg as number | undefined;
   const marks = d ? [{ x: 0, y: 0, label: `Aim · ${Math.round(100 * d.target_cell_p)}%`, kind: 'aim' as const },
     ...(d.safer_aim.distance_m > 0 ? [{ x: d.safer_aim.dx_m, y: d.safer_aim.dy_m, label: `Safer aim · ${Math.round(100 * d.safer_aim.expected_p)}%`, kind: 'safer' as const }] : []),
     ...Object.entries(d.marks || {}).map(([k, m]: any) => ({ x: m.dx_m, y: m.dy_m, label: k, kind: 'mark' as const }))] : [];
@@ -49,13 +52,14 @@ export function Dispersion() {
             <span><b style={{ color: 'var(--ink)' }}>{d.label}</b></span>
             <span>Landing {d.landing_utc.slice(0, 16)} UTC · {d.mission_days}-day mission · {d.preset_label}</span>
             <span>Terrain: {d.terrain} · height errors: {d.terrain_error_map}</span>
+            {aimSlope !== undefined && <span style={{ color: aimSlope < 8 ? 'var(--mute)' : 'var(--sun)' }}>Aim point slope on the 5 m map: {aimSlope.toFixed(1)}°{aimSlope < 8 ? ' (landable)' : ' — steeper than the 8° landing limit, so even a perfect touchdown here is not acceptable; the safer aim point is the real candidate.'}</span>}
             {cs === 'im2_replay' && <span style={{ color: 'var(--sun)' }}>No NASA 5 m map covers IM-2's site (27 checked), so this replay uses 80 m terrain. The crater Athena came to rest in is smaller than one pixel: the whole ellipse looks sunlit. PENUMBRA reports this resolution limit instead of tuning the model to match; sub-metre terrain (e.g. from ISRO's Chandrayaan-2 OHRC) would be needed. Tipping over was a separate guidance failure.</span>}
           </section>
         </aside>
       </div>
       <section className="panel">
         <h2>Battery: aim point vs worst point inside the ellipse</h2>
-        <Lines t={d.battery.t_h} floor={0.2} series={[{ name: 'aim point', v: d.battery.target_soc, color: '#3BA776' }, { name: `worst point (${Math.round(Math.hypot(d.battery.worst_dx_m, d.battery.worst_dy_m))} m away)`, v: d.battery.worst_soc, color: '#E0663F' }]} />
+        <Lines t={d.battery.t_h} floor={0.2} series={[{ name: 'aim point', v: d.battery.target_soc, color: '#3BA776', lostAt: d.battery.target_hours_to_floor }, { name: `worst point (${Math.round(Math.hypot(d.battery.worst_dx_m, d.battery.worst_dy_m))} m away)`, v: d.battery.worst_soc, color: '#E0663F', lostAt: d.battery.worst_hours_to_floor }]} />
       </section>
     </>}
   </>);
@@ -67,7 +71,6 @@ export function PlanB() {
   const [pb, setPb] = useState<any>(undefined);
   const [why, setWhy] = useState<any>(undefined);
   useEffect(() => { setPb(undefined); setWhy(undefined); optionalJson(`planb_${site}.json`).then(setPb); optionalJson(`why_${site}.json`).then(setWhy); }, [site]);
-  const maxAbs = why ? Math.max(1, ...why.factors.map((f: any) => Math.abs(f.delta))) : 1;
   return (<>
     <section className="panel">
       <div className="row" style={{ justifyContent: 'space-between', alignItems: 'flex-end' }}>
@@ -75,28 +78,48 @@ export function PlanB() {
         <label className="field">Site<select value={site} onChange={e => setSite(e.target.value)}>{SITES.map(s => <option key={s.key} value={s.key}>{s.name}</option>)}</select></label>
       </div>
       {pb === undefined ? <span className="mute">loading…</span> : pb === null ? <Pending what="Plan B search" /> : <>
-        <h2>Slip {pb.slip_days} days ({pb.planned_utc.slice(0, 10)} → {pb.slipped_utc.slice(0, 10)}): original point {pb.original.survives ? 'still survives' : 'fails'}</h2>
-        <span className="small mute">Searched {pb.search.candidates_checked.toLocaleString()} candidates within {pb.search.radius_m} m, slope under {pb.search.max_slope_deg}°, dates ±{pb.search.date_window_days} days · {PRESETS[pb.preset]?.label ?? pb.preset}</span>
-        <div className="scroll"><table className="t" style={{ minWidth: 640 }}>
-          <thead><tr><th>Option</th><th>Move</th><th>Date shift</th><th>Slope</th><th>Survives</th><th>Sunlit</th><th>Longest blackout</th><th>Lowest battery</th></tr></thead>
+        <h2>Launch slips {pb.slip_days} days ({pb.planned_utc.slice(0, 10)} → {pb.slipped_utc.slice(0, 10)}): the original point {pb.original.survives ? 'still survives' : `fails — battery floor after ${fmtH(pb.original.hours_to_floor)}`}</h2>
+        <div className="kv" style={{ gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))' }}>
+          <div><span>Original point slope</span><span style={{ color: pb.original.slope_deg < pb.search.max_slope_deg ? 'var(--ink)' : 'var(--bad)' }}>{pb.original.slope_deg.toFixed(1)}° {pb.original.slope_deg < pb.search.max_slope_deg ? '' : '(too steep)'}</span></div>
+          <div><span>Original point works again after</span><span>{pb.original.nearest_surviving_shift_days === null ? 'not within 30 d' : `+${pb.original.nearest_surviving_shift_days} d more`}</span></div>
+          <div><span>Search (landable points × later dates)</span><span>{pb.search.grid_points_passing_slope} × {pb.search.date_window_days + 1} = {pb.search.candidates_checked.toLocaleString()}</span></div>
+          <div><span>Combinations that survive 14 d</span><span>{pb.search.surviving_combinations.toLocaleString()}</span></div>
+        </div>
+        <span className="small mute">Candidates: grid points ({Math.round(pb.search.grid_spacing_m)} m spacing) within {pb.search.radius_m / 1000} km with slope under {pb.search.max_slope_deg}° ({pb.search.slope_source}); landing on the slipped date or up to {pb.search.date_window_days} days later (never earlier — the launch has slipped). Ranked: survives, then earliest landing, then shortest direct-to-Earth blackout. {PRESETS[pb.preset]?.label ?? pb.preset}, {pb.mission_days}-day mission.</span>
+        <div className="scroll"><table className="t" style={{ minWidth: 720 }}>
+          <thead><tr><th>Option</th><th>Move</th><th>Land</th><th>Slope</th><th>Outcome</th><th>Sunlit</th><th>Longest blackout</th><th>Lowest battery</th></tr></thead>
           <tbody>
-            {pb.options.map((o: any) => <tr key={o.rank}><td><b>{o.label}</b> <span className="tag">physics-verified</span></td><td className="mono">{Math.round(o.distance_m)} m at {Math.round(o.bearing_deg)}°</td><td className="mono">{o.date_shift_days >= 0 ? '+' : ''}{o.date_shift_days} d</td><td className="mono">{o.slope_deg.toFixed(1)}°</td><td>{o.survives ? 'yes' : 'no'}</td><td className="mono">{pct(o.sunlit_pct, 0)}</td><td className="mono">{fmtH(o.longest_blackout_h)}</td><td className="mono">{pct(100 * o.min_soc, 0)}</td></tr>)}
-            <tr><td className="mute">Original point</td><td>—</td><td>0 d</td><td>—</td><td>{pb.original.survives ? 'yes' : 'no'}</td><td className="mono">{pct(pb.original.sunlit_pct, 0)}</td><td className="mono">{fmtH(pb.original.longest_blackout_h)}</td><td>—</td></tr>
+            {pb.options.map((o: any) => <tr key={o.rank}><td><b>{o.label}</b> <span className="tag">physics-verified</span></td><td className="mono">{Math.round(o.distance_m)} m, bearing {Math.round(o.bearing_deg)}°</td><td className="mono">{o.landing_utc.slice(0, 10)} (+{o.date_shift_days} d)</td><td className="mono">{o.slope_deg.toFixed(1)}°</td><td style={{ color: o.survives ? 'var(--good)' : 'var(--bad)' }}>{o.survives ? 'survives' : `fails at ${fmtH(o.hours_to_floor)}`}</td><td className="mono">{pct(o.sunlit_pct, 0)}</td><td className="mono">{fmtH(o.longest_blackout_h)}</td><td className="mono">{pct(100 * o.min_soc, 0)}</td></tr>)}
+            <tr><td className="mute">Original point, slipped date</td><td>—</td><td className="mono">{pb.slipped_utc.slice(0, 10)}</td><td className="mono">{pb.original.slope_deg.toFixed(1)}°</td><td style={{ color: pb.original.survives ? 'var(--good)' : 'var(--bad)' }}>{pb.original.survives ? 'survives' : `fails at ${fmtH(pb.original.hours_to_floor)}`}</td><td className="mono">{pct(pb.original.sunlit_pct, 0)}</td><td className="mono">{fmtH(pb.original.longest_blackout_h)}</td><td className="mono">{pct(100 * pb.original.min_soc, 0)}</td></tr>
           </tbody></table></div>
       </>}
     </section>
     <section className="panel">
       <h2>Why? What changed between the two dates</h2>
-      {why === undefined ? <span className="mute">loading…</span> : why === null ? <Pending what="Why? attribution" /> : <>
-        <span className="mute">{why.metric.replace('_', ' ')}: {why.value_a.toFixed(1)} on {why.scenario_a_utc.slice(0, 10)} → {why.value_b.toFixed(1)} on {why.scenario_b_utc.slice(0, 10)}</span>
-        {why.factors.map((f: any) => <div key={f.name} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ flex: '0 0 260px' }}>{f.name}</span>
-          <div style={{ position: 'relative', flex: 1, height: 22, background: 'var(--panel2)', borderRadius: 4 }}>
-            <div style={{ position: 'absolute', top: 3, bottom: 3, left: f.delta < 0 ? `${50 - 50 * Math.abs(f.delta) / maxAbs}%` : '50%', width: `${50 * Math.abs(f.delta) / maxAbs}%`, background: f.delta < 0 ? 'var(--bad)' : 'var(--good)', borderRadius: 3 }} />
-            <div style={{ position: 'absolute', left: '50%', top: 0, bottom: 0, width: 1, background: 'var(--line2)' }} /></div>
-          <span className="mono" style={{ flex: '0 0 70px', textAlign: 'right' }}>{f.delta > 0 ? '+' : ''}{f.delta.toFixed(1)}</span></div>)}
-        {why.blocking_ridge && <span className="small mute">Blocking terrain: azimuth {why.blocking_ridge.azimuth_deg.toFixed(0)}°, {why.blocking_ridge.distance_km.toFixed(1)} km away, {Math.round(why.blocking_ridge.height_above_observer_m)} m above the lander. {why.note}</span>}
-      </>}
+      {why === undefined ? <span className="mute">loading…</span> : why === null ? <Pending what="Why? attribution" /> : (() => {
+        const sunF = why.factors.find((f: any) => f.name.startsWith('Sun'));
+        const earthF = why.factors.find((f: any) => f.name.startsWith('Earth'));
+        const terF = why.factors.find((f: any) => f.name.startsWith('Terrain'));
+        const panF = why.factors.find((f: any) => f.name.startsWith('Panel'));
+        const rows: [string, number, string][] = [
+          ['Sun path (season and date)', sunF?.delta ?? 0, 'sunlit pts'],
+          ['Earth path (libration): sunlight', earthF?.delta ?? 0, 'sunlit pts'],
+          ['Earth path (libration): comms', earthF?.link_delta ?? 0, 'link pts'],
+          ['Panel 5 m instead of 2 m (on new date)', panF?.delta ?? 0, 'sunlit pts']];
+        const mx = Math.max(1, ...rows.map(r => Math.abs(r[1])));
+        const br = why.blocking_ridge;
+        return <>
+          <span className="mute">At the original point, sunlit time changes {why.value_a.toFixed(1)}% → {why.value_b.toFixed(1)}% and direct-to-Earth link time {why.link_pct_a?.toFixed(1)}% → {why.link_pct_b?.toFixed(1)}% between {why.scenario_a_utc.slice(0, 10)} and {why.scenario_b_utc.slice(0, 10)}.</span>
+          {rows.map(([name, v, unit]) => <div key={name} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span style={{ flex: '0 0 300px' }}>{name}</span>
+            <div style={{ position: 'relative', flex: 1, height: 22, background: 'var(--panel2)', borderRadius: 4 }}>
+              <div style={{ position: 'absolute', top: 3, bottom: 3, left: v < 0 ? `${50 - 50 * Math.abs(v) / mx}%` : '50%', width: `${50 * Math.abs(v) / mx}%`, background: v < 0 ? 'var(--bad)' : 'var(--good)', borderRadius: 3 }} />
+              <div style={{ position: 'absolute', left: '50%', top: 0, bottom: 0, width: 1, background: 'var(--line2)' }} /></div>
+            <span className="mono" style={{ flex: '0 0 150px', textAlign: 'right', whiteSpace: 'nowrap' }}>{v > 0 ? '+' : ''}{v.toFixed(1)} {unit}</span></div>)}
+          {terF && <span className="small mute">Total effect of the real terrain on the new date: {terF.delta > 0 ? '+' : ''}{terF.delta.toFixed(1)} sunlit pts compared with a flat 0° horizon — the point sits high enough that its true horizon dips below level towards the Sun, so terrain here helps rather than hurts.</span>}
+          {br?.status === 'done' && <span className="small mute">Main obstruction on the new date: azimuth {br.azimuth_deg.toFixed(1)}°, {br.distance_km.toFixed(2)} km away, horizon {br.elevation_deg.toFixed(2)}° — {br.height_above_observer_m > 0 ? `a ridge ${Math.round(br.height_above_observer_m)} m above the panel` : `the point's own downslope (${Math.round(br.height_above_observer_m)} m relative to the panel): the Sun was simply too low there, not hidden by a ridge`}.</span>}
+          <span className="small mute">One-at-a-time swaps between the two dates; bars need not add up exactly.</span>
+        </>; })()}
     </section>
   </>);
 }
@@ -125,7 +148,7 @@ export function Trust() {
   return (<>
     <section className="panel"><h1>Every number is checked against an independent source</h1><p className="mute" style={{ margin: 0 }}>Measured by the scripts in the repository (docs/validation.md). Checks that are not finished say so.</p></section>
     <div className="row">
-      {card('1 · Sun and Earth angles vs NASA/JPL Horizons', hz ? 'Pass' : '…', hz ? true : null, hz && <>
+      {card('1 · Sun and Earth angles vs NASA/JPL Horizons', hz ? (hmax! < 0.01 ? 'Pass (< 0.01°)' : 'Check') : '…', hz ? hmax! < 0.01 : null, hz && <>
         <span className="big">{hmax!.toExponential(1)}°</span><span className="small mute">largest difference over {hz.results.length} site/body cases × {hz.results[0].n} epochs ({hz.window[0]} to {hz.window[1]})</span>
         <table className="t"><tbody>{hz.results.map((r: any) => <tr key={r.site + r.body}><td>{r.site}</td><td>{r.body}</td><td className="mono">{r.max_sep_deg.toExponential(1)}°</td></tr>)}</tbody></table></>)}
       {card('2 · Browser engine vs Python pipeline', eng ? (eng.match === eng.n ? 'Pass' : 'Check') : 'running…', eng ? eng.match === eng.n : null, eng ? <>
@@ -133,17 +156,21 @@ export function Trust() {
       {card('3 · Sampling accuracy of the Sun/Earth table', meta ? 'Pass' : '…', meta ? true : null, meta && <span className="small mute">Hourly table + float32 vs exact SPICE at 2,000 random minutes: Sun max {meta.self_checks.SUN.max_deg.toExponential(1)}°, Earth max {meta.self_checks.EARTH.max_deg.toExponential(1)}°. Sun elevation at 89.45°S stays within {meta.self_checks.pole_sun_elev_range_deg.map((v: number) => v.toFixed(2)).join(' to ')}° (theory: ±2.09°).</span>)}
     </div>
     <div className="row">
-      {card('4 · Real mission: Chandrayaan-3 at Shiv Shakti (69.373°S, 32.319°E)', 'Matches', true, <table className="t"><tbody>
-        <tr><th>Event</th><th>PENUMBRA (flat horizon)</th><th>Reported by ISRO</th></tr>
-        <tr><td>Sunrise</td><td className="mono">2023-08-21 10:30</td><td>Landing 23 Aug</td></tr>
-        <tr><td>Sunset</td><td className="mono">2023-09-04 16:10</td><td>Put to sleep 2–4 Sep</td></tr>
-        <tr><td>Next sunrise</td><td className="mono">2023-09-19 19:30</td><td>Wake-up expected ~22 Sep</td></tr>
-        {val?.chandrayaan3?.terrain?.status === 'done' && <tr><td>With terrain</td><td className="mono" colSpan={2}>{val.chandrayaan3.terrain.sunset} / {val.chandrayaan3.terrain.next_sunrise}</td></tr>}</tbody></table>)}
+      {card('4 · Real mission: Chandrayaan-3 at Shiv Shakti (69.373°S, 32.319°E)', val?.chandrayaan3 ? 'Consistent' : '…', val?.chandrayaan3 ? true : null, val?.chandrayaan3 && <table className="t"><tbody>
+        <tr><th>Event (UTC)</th><th>Flat horizon</th><th>LOLA terrain</th><th>Reported by ISRO</th></tr>
+        <tr><td>Sunrise</td><td className="mono">{val.chandrayaan3.flat.sunrise.replace('T', ' ')}</td><td className="mono">{val.chandrayaan3.terrain?.status === 'done' ? val.chandrayaan3.terrain.sunrise.replace('T', ' ') : '—'}</td><td>Landing {val.chandrayaan3.reported.landing}</td></tr>
+        <tr><td>Sunset</td><td className="mono">{val.chandrayaan3.flat.sunset.replace('T', ' ')}</td><td className="mono">{val.chandrayaan3.terrain?.status === 'done' ? val.chandrayaan3.terrain.sunset.replace('T', ' ') : '—'}</td><td>Sleep {val.chandrayaan3.reported.sleep}</td></tr>
+        <tr><td>Next sunrise</td><td className="mono">{val.chandrayaan3.flat.next_sunrise.replace('T', ' ')}</td><td className="mono">{val.chandrayaan3.terrain?.status === 'done' ? val.chandrayaan3.terrain.next_sunrise.replace('T', ' ') : '—'}</td><td>Wake expected ~{val.chandrayaan3.reported.expected_wake}</td></tr>
+        {val.chandrayaan3.terrain?.dem && <tr><td colSpan={4} className="small mute">Terrain: {val.chandrayaan3.terrain.dem}, {val.chandrayaan3.terrain.observer_height_m} m observer, {val.chandrayaan3.terrain.sun_criterion.toLowerCase()}. Sleep came just before sunset; the waking attempt came 2 days after terrain sunrise, as the panels needed the Sun higher.</td></tr>}
+        </tbody></table>)}
       {card('5 · Long-term sunlight vs NASA PGDA 69', val?.pgda69?.status === 'done' ? `R² ${val.pgda69.r2.toFixed(2)}` : 'pending', val?.pgda69?.status === 'done' ? val.pgda69.r2 > 0.8 : null,
-        val?.pgda69?.status === 'done' ? <><svg viewBox="0 0 300 160" role="img" aria-label="Scatter of PENUMBRA vs PGDA 69 sunlight" style={{ width: '100%' }}><rect width="300" height="160" fill="#0F131C" rx="6" /><line x1="10" y1="150" x2="290" y2="10" stroke="#5B6478" strokeDasharray="4 4" />{val.pgda69.points.map((p: number[], i: number) => <circle key={i} cx={10 + 2.8 * p[1]} cy={150 - 1.4 * p[0]} r="2.5" fill="#F5B841" />)}</svg>
-          <span className="small mute">{val.pgda69.n_points} points · bias {val.pgda69.bias_pct.toFixed(1)} pts · RMSE {val.pgda69.rmse_pct.toFixed(1)} pts · {val.pgda69.notes}</span></> : <Pending what="PGDA 69 comparison" />)}
+        val?.pgda69?.status === 'done' ? <><svg viewBox="0 0 330 200" role="img" aria-label="Scatter of PENUMBRA vs PGDA 69 sunlight" style={{ width: '100%' }}><rect x="34" y="6" width="280" height="164" fill="#0F131C" rx="4" /><line x1="34" y1="170" x2="314" y2="6" stroke="#5B6478" strokeDasharray="4 4" />
+            {val.pgda69.points.map((p: number[], i: number) => <circle key={i} cx={34 + 2.8 * p[1]} cy={170 - 1.64 * p[0]} r="2.3" fill={['#F5B841', '#5AA9FF', '#3BA776'][['shackleton', 'malapert', 'leibnitz_beta'].indexOf(val.pgda69.point_sites?.[i])] ?? '#F5B841'} opacity="0.85" />)}
+            {[0, 50, 100].map(v => <g key={v}><text x="28" y={174 - 1.64 * v} fill="#9AA3B5" fontSize="10" textAnchor="end">{v}</text><text x={34 + 2.8 * v} y="184" fill="#9AA3B5" fontSize="10" textAnchor="middle">{v}</text></g>)}
+            <text x="174" y="198" fill="#9AA3B5" fontSize="10" textAnchor="middle">NASA PGDA 69 average illumination (%)</text><text x="10" y="90" fill="#9AA3B5" fontSize="10" transform="rotate(-90 10 90)" textAnchor="middle">PENUMBRA (%)</text></svg>
+          <span className="small mute">{val.pgda69.n_points} points · Pearson r {val.pgda69.pearson_r?.toFixed(3)} · bias {val.pgda69.bias_pct.toFixed(1)} pts · RMSE {val.pgda69.rmse_pct.toFixed(1)} pts. By site (bias / RMSE): {Object.entries(val.pgda69.per_site ?? {}).map(([k, v]: any) => `${k.replace('_', ' ')} ${v.bias_pct.toFixed(1)} / ${v.rmse_pct.toFixed(1)}`).join(' · ')}. 18.6-year comparison (a full lunar nodal cycle).</span><span className="small"><span style={{ color: '#F5B841' }}>● Shackleton</span> · <span style={{ color: '#5AA9FF' }}>● Malapert</span> · <span style={{ color: '#3BA776' }}>● Leibnitz beta</span> · dashed line = perfect agreement</span></> : <Pending what="PGDA 69 comparison" />)}
       {card('6 · Predicted shadows vs a real LRO photo', val?.shadow?.status === 'done' ? `IoU ${val.shadow.iou.toFixed(2)}` : val?.shadow?.status ?? 'pending', val?.shadow?.status === 'done' ? val.shadow.iou > 0.8 : null,
-        val?.shadow && val.shadow.status !== 'not_available' ? <><img src={import.meta.env.BASE_URL + 'data/' + val.shadow.overlay_png} alt="Predicted shadow edge over an LRO image" style={{ width: '100%', borderRadius: 6 }} /><span className="small mute">{val.shadow.image_id} · {val.shadow.image_time_utc} · {val.shadow.notes}</span></> : <Pending what="Shadow overlay" />)}
+        val?.shadow?.status === 'not_available' ? <div className="pending">Not available yet: {val.shadow.notes}</div> : val?.shadow && val.shadow.overlay_png ? <><img src={import.meta.env.BASE_URL + 'data/' + val.shadow.overlay_png} alt="Predicted shadow edge over an LRO image" style={{ width: '100%', borderRadius: 6 }} /><span className="small mute">{val.shadow.image_id} · {val.shadow.image_time_utc} · {val.shadow.notes}</span></> : <Pending what="Shadow overlay" />)}
     </div>
     <Provenance />
   </>);
@@ -237,12 +264,12 @@ export function Rim() {
         {[[40, 40], [120, 70], [300, 30], [350, 110], [210, 55], [80, 140], [260, 120], [170, 22]].map(([x, y], i) => <circle key={i} cx={x} cy={y} r="1" fill="#E6E9F0" />)}
         <circle cx={view.X(now.sunAz)} cy={view.Y(now.sunEl)} r="14" fill="#FFF3D6" />
         <polygon points={`0,${Hh} ${view.pts} ${W},${Hh}`} fill="#1A2030" stroke="#3A4459" />
-        <text x="12" y="22" fill="#F5B841" fontSize="13" fontWeight="600">Sun {now.sunEl.toFixed(2)}° · {view.vis ? 'visible above the ridge' : 'hidden behind terrain'}</text>
+        <text x="12" y="22" fill="#F5B841" fontSize="13" fontWeight="600">Sun {now.sunEl.toFixed(2)}° · terrain horizon there {horizonAt(st.H, now.sunAz).toFixed(2)}° · {view.vis ? 'Sun visible' : 'Sun hidden by terrain'}</text>
         <text x="12" y={Hh - 10} fill="#9AA3B5" fontSize="11">Looking towards the Sun (azimuth {now.sunAz.toFixed(0)}°), 120° wide view, real NASA LOLA horizon</text>
       </svg>}
       <div className="kv">
         <div><span>Your sky · noon, latitude {lat.toFixed(1)}°</span><span>{noon.toFixed(0)}°</span></div>
-        <div><span>Lunar south pole, any time</span><span style={{ color: 'var(--sun)' }}>≤ 2.1°</span></div>
+        <div><span>This site ({st ? `${st.info.lat.toFixed(2)}°` : '—'}), any time</span><span style={{ color: 'var(--sun)' }}>≤ {st ? (90 - Math.abs(st.info.lat) + 1.54).toFixed(1) : '—'}°</span></div>
       </div>
       <label className="field">Your latitude (default: Bengaluru)<input type="number" step="0.1" value={lat} onChange={e => setLat(+e.target.value)} /></label>
       <p className="mute" style={{ margin: 0, lineHeight: 1.5 }}>At the pole the Sun circles along the horizon instead of rising overhead. A ridge a few hundred metres away can hide it for days, which is why landing a few hundred metres off target can end a mission.</p>

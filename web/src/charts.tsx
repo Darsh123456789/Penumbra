@@ -46,6 +46,10 @@ export function Timeline({ res }: { res: SimResult }) {
       <rect x={L} y="170" width={W - L - 10} height="60" fill="#0F131C" rx="4" />
       <line x1={L} x2={W - 10} y1={socY(0.2)} y2={socY(0.2)} stroke="#E0663F" strokeDasharray="4 4" />
       <polyline fill="none" stroke={res.survives ? '#3BA776' : '#E0663F'} strokeWidth="2" points={s.soc.filter((_, i) => i % 3 === 0).map((v, k) => `${X(k * 3).toFixed(1)},${socY(v).toFixed(1)}`).join(' ')} />
+      {res.hours_to_floor !== null && (() => { const i0 = Math.round(res.hours_to_floor! / (s.t_h[1] || 1 / 6)); return <g>
+        <rect x={X(i0)} y="4" width={Math.max(0, W - 10 - X(i0))} height="230" fill="#05070B" opacity="0.62" />
+        <line x1={X(i0)} x2={X(i0)} y1="4" y2="234" stroke="#E0663F" strokeWidth="2" />
+        <text x={X(i0) + (X(i0) > W - 420 ? -8 : 8)} y="162" fill="#FFB3AA" fontSize="12" fontWeight="600" textAnchor={X(i0) > W - 420 ? 'end' : 'start'}>Battery floor at {Math.round(res.hours_to_floor!)} h: mission lost (no recovery assumed after this)</text></g>; })()}
       {[0, 3.5, 7, 10.5, 14].map(d => <text key={d} x={X((d / 14) * n)} y="252" fill="#9AA3B5" fontSize="11" textAnchor={d === 0 ? 'start' : d === 14 ? 'end' : 'middle'}>day {d}</text>)}
     </svg>);
 }
@@ -66,7 +70,7 @@ export function Heatmap({ p, n, cell, half, radius, marks }: { p: number[]; n: n
     </svg>);
 }
 
-export function Lines({ t, series, floor, height = 200 }: { t: number[]; series: { name: string; v: number[]; color: string }[]; floor?: number; height?: number }) {
+export function Lines({ t, series, floor, height = 200 }: { t: number[]; series: { name: string; v: number[]; color: string; lostAt?: number | null }[]; floor?: number; height?: number }) {
   const W = 900, L = 44, tmax = t[t.length - 1] || 1;
   const X = (x: number) => L + (x / tmax) * (W - L - 10), Y = (v: number) => 10 + (1 - v) * (height - 40);
   return (
@@ -74,7 +78,11 @@ export function Lines({ t, series, floor, height = 200 }: { t: number[]; series:
       <rect x={L} y="10" width={W - L - 10} height={height - 40} fill="#0F131C" />
       {[0, 0.5, 1].map(v => <text key={v} x={L - 6} y={Y(v) + 4} fill="#9AA3B5" fontSize="11" textAnchor="end">{v * 100}%</text>)}
       {floor !== undefined && <line x1={L} x2={W - 10} y1={Y(floor)} y2={Y(floor)} stroke="#E0663F" strokeDasharray="5 5" />}
-      {series.map(s => <polyline key={s.name} fill="none" stroke={s.color} strokeWidth="2.5" points={s.v.map((v, i) => `${X(t[i]).toFixed(1)},${Y(v).toFixed(1)}`).join(' ')} />)}
+      {series.map(s => { const cut = s.lostAt === null || s.lostAt === undefined ? t.length : t.findIndex(x => x >= s.lostAt!) + 1; return <g key={s.name}>
+        <polyline fill="none" stroke={s.color} strokeWidth="2.5" points={s.v.slice(0, cut).map((v, i) => `${X(t[i]).toFixed(1)},${Y(v).toFixed(1)}`).join(' ')} />
+        {cut < t.length && <><polyline fill="none" stroke={s.color} strokeWidth="1.2" strokeDasharray="3 5" opacity="0.45" points={s.v.slice(cut - 1).map((v, i) => `${X(t[i + cut - 1]).toFixed(1)},${Y(v).toFixed(1)}`).join(' ')} />
+          <text x={X(t[cut - 1]) + 8} y={Y(0) - 8} fill={s.color} fontSize="12" fontWeight="600">mission lost at {Math.round(s.lostAt!)} h · dashed = what the battery would do if the lander revived</text></>}
+      </g>; })}
       {series.map((s, i) => <text key={s.name} x={W - 14} y={24 + 16 * i} fill={s.color} fontSize="12" fontWeight="600" textAnchor="end">{s.name}</text>)}
       <text x={L} y={height - 8} fill="#9AA3B5" fontSize="11">0 h</text><text x={W - 10} y={height - 8} fill="#9AA3B5" fontSize="11" textAnchor="end">{Math.round(tmax)} h</text>
     </svg>);
