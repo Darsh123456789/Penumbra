@@ -90,7 +90,7 @@ export function enu(lat: number, lon: number): [V3, V3, V3] {
           [-Math.sin(la) * Math.cos(lo), -Math.sin(la) * Math.sin(lo), Math.cos(la)],
           [Math.cos(la) * Math.cos(lo), Math.cos(la) * Math.sin(lo), Math.sin(la)]];
 }
-function interp(tab: Float32Array, e: Ephem, et: number): V3 {
+export function interp(tab: Float32Array, e: Ephem, et: number): V3 {
   const x = (et - e.et0) / e.step;
   const i = Math.min(e.n - 2, Math.max(0, Math.floor(x)));
   const f = x - i;
@@ -144,18 +144,20 @@ export interface SimResult { sunlit_pct: number; earth_pct: number; both_pct: nu
   sun_up_at_start: boolean; earth_up_at_start: boolean; sunrise_in_h: number | null; earthrise_in_h: number | null;
   dark_terrain_h: number; dark_below_horizontal_h: number; earth_terrain_h: number; earth_below_horizontal_h: number;
   sun_el_min: number; sun_el_max: number; load_kwh: number; battery_needed_wh: number;
+  relay_only_pct: number; longest_blackout_no_relay_h: number;
   series: { t_h: number[]; f_sun: number[]; earth_up: boolean[]; dsn: boolean[]; link: boolean[]; soc: number[]; sun_az: number[]; sun_el: number[]; earth_az: number[]; earth_el: number[] } }
 
 // geoHorizonDeg: horizon of a bare, smooth Moon for an observer at this height (negative: the dip). Darkness with the
 // Sun above it but below the LOLA horizon is caused by terrain; below it, by the Moon's curvature alone.
 export function bareMoonDip(heightAboveDatumM: number): number { return -Math.acos(R_M / (R_M + Math.max(0, heightAboveDatumM))) * 180 / Math.PI; }
-export function simulate(e: Ephem, d: Dsn, H: Float64Array, lat: number, lon: number, startIso: string, days: number, p: Preset, geoHorizonDeg = 0): SimResult {
+export function simulate(e: Ephem, d: Dsn, H: Float64Array, lat: number, lon: number, startIso: string, days: number, p: Preset, geoHorizonDeg = 0, relay?: (et: number) => boolean): SimResult {
   const et0 = utcToEt(startIso), n = Math.round(days * 86400 / STEP_S), dt = STEP_S / 3600;
   const S = siteVector(lat, lon), M = enu(lat, lon);
   const ser = { t_h: [] as number[], f_sun: [] as number[], earth_up: [] as boolean[], dsn: [] as boolean[], link: [] as boolean[], soc: [] as number[],
     sun_az: [] as number[], sun_el: [] as number[], earth_az: [] as number[], earth_el: [] as number[] };
   let energy = p.battery_wh * (p.initial_soc ?? 1), minSoc = 1, tFloor: number | null = null, ein = 0;
   let lit = 0, eup = 0, both = 0, lk = 0, night = 0, nightMax = 0, bo = 0, boMax = 0;
+  let rOnly = 0, bo0 = 0, bo0Max = 0; // relay what-if: relay-only link steps; blackout counted on the direct link alone
   let sunset: number | null = null, earthset: number | null = null, sunrise: number | null = null, earthrise: number | null = null;
   let dTer = 0, dHor = 0, eTer = 0, eHor = 0, elMin = 90, elMax = -90, loadE = 0;
   let cum = 0, peak = 0, drawdown = 0; // sequent-peak: smallest battery that never drops below the floor
@@ -167,7 +169,9 @@ export function simulate(e: Ephem, d: Dsn, H: Float64Array, lat: number, lon: nu
     const [ea, ee] = azEl([q[0] - S[0], q[1] - S[1], q[2] - S[2]], M);
     const f = Math.min(1, Math.max(0, (se - horizonAt(H, sa) + SUN_R) / (2 * SUN_R)));
     const up = ee - horizonAt(H, ea) > (p.earth_margin_deg ?? 1);
-    const ds = dsnAt(d, et), link = up && ds;
+    const ds = dsnAt(d, et), direct = up && ds, link = direct || (relay ? relay(et) : false);
+    if (link && !direct) rOnly++;
+    bo0 = !direct ? bo0 + 1 : 0; bo0Max = Math.max(bo0Max, bo0);
     const pin = p.panel_eff * S0 * p.panel_area_m2 * f * panelFactor(p.panel_layout, sa, se);
     ein += pin * dt;
     const load = p.load_w + (f < 0.05 ? p.heater_w : 0);
@@ -197,7 +201,7 @@ export function simulate(e: Ephem, d: Dsn, H: Float64Array, lat: number, lon: nu
     sun_up_at_start: sunUp0, earth_up_at_start: earthUp0, sunrise_in_h: sunrise, earthrise_in_h: earthrise,
     dark_terrain_h: dTer * dt, dark_below_horizontal_h: dHor * dt, earth_terrain_h: eTer * dt, earth_below_horizontal_h: eHor * dt,
     sun_el_min: elMin, sun_el_max: elMax, load_kwh: loadE / 1000,
-    battery_needed_wh: drawdown / (1 - p.soc_floor), series: ser };
+    battery_needed_wh: drawdown / (1 - p.soc_floor), relay_only_pct: 100 * rOnly / n, longest_blackout_no_relay_h: bo0Max * dt, series: ser };
 }
 
 export const PRESETS: Record<string, Preset> = {
