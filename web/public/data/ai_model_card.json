@@ -1,7 +1,78 @@
 {
- "generated_utc": "2026-11-15T15:12:55Z",
+ "generated_utc": "2026-11-15T15:24:26Z",
  "helios": {
-  "status": "not_run"
+  "status": "failed",
+  "architecture": "Per-site Gaussian Fourier features (256 freq, sigma 0.5) + 4x256 SiLU MLP -> 127 real Fourier coefficients (harmonics 0-63) -> 360 bins; weighted L1 (x5 in -2..+8 deg)",
+  "train_points": 23808,
+  "test_points": 3840,
+  "test_split": "5 of 36 whole 16x16-point tiles per site held out (13.9%), never random points",
+  "gates": [
+   {
+    "name": "Horizon error, held-out tiles (median, worst site)",
+    "target": "< 0.05 deg",
+    "measured": 0.8305,
+    "unit": "deg",
+    "pass": false
+   },
+   {
+    "name": "Horizon error, held-out tiles (p99, worst site)",
+    "target": "< 0.3 deg",
+    "measured": 8.6955,
+    "unit": "deg",
+    "pass": false
+   },
+   {
+    "name": "Lit/unlit agreement, 2027 hourly Sun (worst site)",
+    "target": "> 99%",
+    "measured": 94.1658,
+    "unit": "%",
+    "pass": false
+   }
+  ],
+  "speedup_vs_exact": 3329.7,
+  "speedup_note": "vs the stored raycast cost of ~14 ms/point (2 CPU cores); HELIOS timed as batch inference on CPU",
+  "per_site": [
+   {
+    "site": "shackleton",
+    "test_median_deg": 0.23250547051429749,
+    "test_p99_deg": 5.600071430206299,
+    "agreement_pct": 98.28690425228311,
+    "agreement_near_horizon_pct": 89.57409309329492,
+    "ms_per_point": 0.003808529947906752,
+    "baseline_linear_interp": {
+     "median_deg": 0.397058823529413,
+     "p99_deg": 6.391544117647058,
+     "agreement_pct": 98.09937749714612
+    }
+   },
+   {
+    "site": "malapert",
+    "test_median_deg": 0.6372016668319702,
+    "test_p99_deg": 8.695486068725586,
+    "agreement_pct": 94.77333047945206,
+    "agreement_near_horizon_pct": 79.18196494409622,
+    "ms_per_point": 0.003963931098126415,
+    "baseline_linear_interp": {
+     "median_deg": 0.5405001444825075,
+     "p99_deg": 7.271491329308749,
+     "agreement_pct": 95.26300299657534
+    }
+   },
+   {
+    "site": "leibnitz_beta",
+    "test_median_deg": 0.8304593563079834,
+    "test_p99_deg": 8.504342079162598,
+    "agreement_pct": 94.16580158390411,
+    "agreement_near_horizon_pct": 79.33736655375255,
+    "ms_per_point": 0.0042045225695138315,
+    "baseline_linear_interp": {
+     "median_deg": 0.7333409926470864,
+     "p99_deg": 7.627792107077203,
+     "agreement_pct": 94.23248430365297
+    }
+   }
+  ],
+  "fourier_floor_note": "Truncating the true horizons to 32 real coefficients alone gives a 0.055-0.071 deg median error, so 127 coefficients are used (truncation floor 0.011-0.015 deg)."
  },
  "survivor": {
   "status": "failed",

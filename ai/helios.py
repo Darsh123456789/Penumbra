@@ -22,7 +22,7 @@ import common as C  # noqa: E402
 torch.set_num_threads(2)
 N_HARM = 64                         # harmonics 0..63 -> 1 + 2*63 = 127 real coefficients
 N_TEST_TILES = 5
-SIGMA = float(os.environ.get("HELIOS_SIGMA", 6.0))
+SIGMA = float(os.environ.get("HELIOS_SIGMA", 0.5))   # chosen on validation tiles (see model card)
 N_FREQ, WIDTH, DEPTH = 256, 256, 4
 
 
@@ -80,6 +80,13 @@ def run_site(s, steps, seed):
     xy = np.stack([(x - x.mean()) / (x.max() - x.min()) * 2, (y - y.mean()) / (y.max() - y.min()) * 2], 1)
     test, tiles = split_tiles(seed)
     tr = ~test
+    if os.environ.get("HELIOS_VAL"):          # model selection: 5 validation tiles from the TRAINING area only
+        rng = np.random.default_rng(seed + 100)
+        cand = [t for t in range(36) if t not in tiles]
+        vt = rng.choice(cand, N_TEST_TILES, replace=False)
+        ii, jj = np.divmod(np.arange(9216), 96)
+        val = np.isin((ii // 16) * 6 + (jj // 16), vt)
+        test, tr, tiles = val, tr & ~val, sorted(vt.tolist())
     Bm = basis()
     coef = np.linalg.lstsq(Bm.T, H.T, rcond=None)[0].T            # (9216, 127) exact projection
     mu, sd = coef[tr].mean(0), coef[tr].std(0) + 1e-3
