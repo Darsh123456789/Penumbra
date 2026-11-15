@@ -1,0 +1,25 @@
+{
+  "site": "Nobile Rim 2 (NASA Artemis III candidate region; PGDA 78 DM2)",
+  "dem": "DM2_final_adj_5mpp_surf.tif",
+  "far_field": "LDEM_80S_80MPP_ADJ.tiff",
+  "grid_n": 96,
+  "observer_height_m": 2.0,
+  "x_m": [
+    147300.0,
+    166700.0
+  ],
+  "y_m": [
+    85300.0,
+    104700.0
+  ],
+  "azimuth_bins": "360 x 1 deg, bin k centred on k+0.5 deg, clockwise from local north",
+  "layout": "little-endian float16, row-major [point, azimuth], points ordered y-major then x",
+  "max_range_km": 200.0,
+  "best_sunlit_point": {
+    "lat": -84.07035247592738,
+    "lon": 59.241538298715305,
+    "z_m": 1465.294372220449,
+    "sun_pct_2027": 51.99269788916266,
+    "earth_pct_2027": 62.636986301369866
+  }
+}

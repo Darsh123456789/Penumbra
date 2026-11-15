@@ -1,0 +1,60 @@
+{
+  "site": "nobile_rim_2",
+  "metric": "sunlit_pct",
+  "scenario_a_utc": "2027-02-14T00:00:00",
+  "scenario_b_utc": "2027-02-26T00:00:00",
+  "preset": "medium_vertical",
+  "mission_days": 14,
+  "point": {
+    "lat": -84.07035,
+    "lon": 59.2415
+  },
+  "value_a": 64.04,
+  "value_b": 19.25,
+  "link_pct_a": 51.59,
+  "link_pct_b": 49.55,
+  "factors": [
+    {
+      "name": "Sun path (season and date)",
+      "delta": -44.79,
+      "how": "B's Sun vectors with A's Earth, DSN, terrain and 2 m panel, minus value_a"
+    },
+    {
+      "name": "Earth path (libration)",
+      "delta": 0.0,
+      "link_delta": -2.03,
+      "how": "B's Earth vectors and DSN times with A's Sun; delta = sunlit change, link_delta = link_pct change"
+    },
+    {
+      "name": "Terrain horizon",
+      "delta": 13.1,
+      "delta_on_change": 16.37,
+      "flat_a": 67.31,
+      "flat_b": 6.15,
+      "how": "value_b with the real LOLA horizon minus scenario B with a flat 0-deg horizon"
+    },
+    {
+      "name": "Panel height",
+      "delta": 0.2,
+      "b_2m": 19.25,
+      "b_5m": 19.44,
+      "raycast_check_max_abs_deg_vs_grid": 0.002,
+      "how": "scenario B, 5 m vs 2 m panel, both raycast fresh with terrain.horizons()"
+    }
+  ],
+  "blocking_ridge": {
+    "azimuth_deg": 242.5,
+    "blocked_steps": 12,
+    "blocked_steps_total": 1628,
+    "tied_bins": 108,
+    "tie_break": "highest terrain horizon among bins with the most blocked steps",
+    "horizon_elev_deg_grid": 4.141,
+    "distance_km": 61.121,
+    "height_above_observer_m": 5506.4,
+    "elevation_deg": 4.142,
+    "sample_height_m": 6973.7,
+    "observer_eye_m": 1467.3,
+    "status": "done"
+  },
+  "note": "One-at-a-time attribution; bars need not add up exactly. Comms factor: swapping in B's Earth path (and DSN station times) changes link_pct by -2.0 points (A 51.6% -> B 49.6%); Earth's path cannot change sunlight (measured sunlit delta +0.0). Terrain and panel-height bars are measured on the slipped date B."
+}

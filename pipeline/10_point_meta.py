@@ -8,16 +8,19 @@ web/public/data/ai_search_<site>.json (the AI search itself does not filter by s
 
 Usage:  python pipeline/10_point_meta.py
 """
-import importlib, json, os
+import importlib, json, os, sys
 import numpy as np
 import terrain as T
 
 planb = importlib.import_module("07_planb")
 WEB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "web", "public", "data")
 FILES = {"shackleton": "Site04_final_adj_5mpp_surf.tif", "malapert": "Site23_final_adj_5mpp_surf.tif",
-         "leibnitz_beta": "Site20v2_final_adj_5mpp_surf.tif"}
+         "leibnitz_beta": "Site20v2_final_adj_5mpp_surf.tif", "haworth": "Haworth_final_adj_5mpp_surf.tif", "nobile_rim_2": "DM2_final_adj_5mpp_surf.tif"}
 LIMIT = 8.0
-out = {"slope_source": "PGDA 78 5 m map, 3x3 Horn window (15 m baseline)", "landing_slope_limit_deg": LIMIT, "sites": {}}
+if sys.argv[1:]:  # update only the given sites, keep the others
+    FILES = {k: v for k, v in FILES.items() if k in sys.argv[1:]}
+_prev = os.path.join(WEB, "points_meta.json")
+out = {"slope_source": "PGDA 78 5 m map, 3x3 Horn window (15 m baseline)", "landing_slope_limit_deg": LIMIT, "sites": json.load(open(_prev))["sites"] if os.path.exists(_prev) else {}}
 for site, f in FILES.items():
     slip = json.load(open(os.path.join(WEB, f"slip_{site}.json")))
     disp = json.load(open(os.path.join(WEB, f"dispersion_{site}.json")))

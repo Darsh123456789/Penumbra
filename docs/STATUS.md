@@ -105,6 +105,13 @@ sites), Stand on the rim (first-person view, your-city comparison, sonified luna
   the "Plan B for this spot" search and the relay runs. Re-checked in the browser: custom = medium_vertical gives 211/365 (Malapert
   best grid point) and 206/365 (Shackleton), identical to Python; battery 8 kWh → 215/365 at Malapert.
 
+## Task 5 (15 Nov, late): two more NASA Artemis III candidate regions
+- Added `haworth` (PGDA 78 Haworth) and `nobile_rim_2` (PGDA 78 DM2) to every pipeline step (03, 04, 05, 07, 08,
+  09 sites.json, 10, 11 grid) and every web tab (Mission Board incl. pick-any-point, Landing cloud, Plan B + Why?,
+  Rim). Now 5 detailed sites, 2 of them new Artemis III regions; details and numbers in `validation.md` §11.
+- Best-lit 2027: Haworth 65.0%, Nobile Rim 2 52.0%. Browser = Python 365/365 at both. AI Lab stays at 3 sites
+  (SURVIVOR model file not in the repo; not retrained). New DEMs: Haworth / DM2 `_surf` + `_toterr` in `data/dem/`.
+
 ## Data that is NOT in Git (must be attached to chats that need it)
 - `pipeline/out/ephemeris_hourly.npz`, `pipeline/out/horizons_<site>.npz` — in "Prompt 1/2 - pipeline outputs.zip".
 - NASA LOLA DEMs in `data/dem/`: `Site04/Site20v2/Site23_final_adj_5mpp_surf.tif` (+ `_toterr.tif`),

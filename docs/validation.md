@@ -201,3 +201,44 @@ Checks (`bash web/scripts/relay_check.sh`, Node 22):
 
 Not done: no Python twin, so the relay is browser-only and not validated against Python. No J2 or Earth
 perturbations, and no link budget, antenna pointing or relay availability are modelled.
+
+## 11. New sites: two NASA Artemis III candidate regions (Haworth, Nobile Rim 2)
+NASA's nine Artemis III candidate regions (NASA, 28 Oct 2024, "NASA Provides Update on Artemis III Moon Landing
+Regions", https://www.nasa.gov/?p=748006): Peak near Cabeus B, Haworth, Malapert Massif, Mons Mouton Plateau,
+Mons Mouton, Nobile Rim 1, Nobile Rim 2, de Gerlache Rim 2, Slater Plain. Added with their PGDA 78 5 m maps:
+* `haworth`: PGDA 78 **Haworth** (`Haworth_final_adj_5mpp_surf.tif` + `_toterr.tif`), map named after the region.
+* `nobile_rim_2`: PGDA 78 **DM2** (`DM2_final_adj_5mpp_surf.tif` + `_toterr.tif`). DM2 = Nobile Rim 2 per
+  arXiv:2406.19863 ("Site DM2 (Nobile Rim 2)"); map centre -83.95, 58.82 E (header probe), on Nobile's NE rim.
+Same code path, constants and grid as the original three sites (96 x 96 points over the map minus a 300 m margin;
+grid spacing 307 m at Haworth, 204 m at DM2 because the maps are 29.8 / 19.6 km wide). Not covered: SL2 is likely
+de Gerlache Rim 2 but its PGDA label could not be confirmed tonight; no 5 m map near Peak near Cabeus B was found.
+
+| Site | Best-lit point | Sunlit 2027 | Earth there | Landable (Horn slope < 8 deg) | Best point slope | Days in 2027 that survive (S/M/mast) |
+| --- | --- | --- | --- | --- | --- | --- |
+| Haworth | 86.988 S, 335.74 E, z = 1788 m | 65.0% | 54.8% | 33.9% of 9,216 | 6.7 deg | 86 / 89 / 88 (24%) |
+| Nobile Rim 2 | 84.070 S, 59.24 E, z = 1465 m | 52.0% | 62.6% | 32.3% of 9,216 | 0.77 deg | 9-10% |
+
+Illumination maps look like terrain (lit rims and ridges, dark crater floors; Nobile crater interior dark):
+`pipeline/out/illum_haworth.png`, `illum_nobile_rim_2.png`. Both best-lit values are below the original three
+(74.5-80.3%): these regions lie 3-6 deg from the pole, with lower peaks.
+
+Browser TypeScript engine vs Python (`web/scripts/verify_site.ts`, best point, 365 landing days x 3 presets):
+survival agrees 365/365 at both sites for all presets; max sunlit difference 0.01 pts.
+
+Dispersion (400 m 3-sigma, 10 LOLA-error terrain versions, 4,000 draws, mid-size preset): Haworth P(survive)
+**51.4%** (aim cell 100%, lethal share 72.5%, safer aim 102 m away -> 57.7%). Haworth's best point fails a 14 Feb
+landing, so the script's rule (first survivable day from 14 Feb) gives a 19 Feb landing. Nobile Rim 2 P(survive) **31.0%** (aim cell 100%, lethal share 78.9%, safer aim 385 m away -> 78.2%; landing
+9 Mar 2027, the first day from 14 Feb on which its best point survives).
+
+Plan B (12-day slip 14 -> 26 Feb 2027, forward-only to +30 d, 2 km, slope < 8 deg):
+* Haworth: **no surviving combination** (0 of 2,170; 70 landable grid points x 31 days). Best non-survivor A is
+  1,968 m at 333 deg, +27 d, reaching the battery floor after 246 h. The original point never survives in the window.
+* Nobile Rim 2: 28 of 3,658 survive. Option A 736 m at 357 deg, land +11 d, survives, 97.3% sunlit, longest
+  blackout 31.8 h; the original point works again at +11 d.
+
+Why? (sunlit %, 14 Feb vs 26 Feb): Haworth 60.6 -> 52.6 (Sun path -8.0, terrain +26.1); blocking direction az
+204.5 deg at 68 km. Nobile Rim 2 64.0 -> 19.3 (Sun path -44.8, terrain +13.1, panel 5 m +0.2); blocking terrain
+az 242.5 deg, 61 km away, 5.5 km above the panel (horizon 4.1 deg).
+
+Not done for the new sites: AI search (the SURVIVOR model file is not in the repo; no retraining tonight) and the
+site-specific PGDA 69 / LROC shadow checks; the new sites rely on the same validated code path.

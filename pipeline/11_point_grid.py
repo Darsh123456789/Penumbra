@@ -11,7 +11,7 @@ Writes web/public/data/grid_<site>.json
 
 Usage:  python pipeline/11_point_grid.py
 """
-import importlib, json, os
+import importlib, json, os, sys
 import numpy as np
 
 planb = importlib.import_module("07_planb")
@@ -19,7 +19,10 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "out")
 WEB = os.path.join(HERE, "..", "web", "public", "data")
 FILES = {"shackleton": "Site04_final_adj_5mpp_surf.tif", "malapert": "Site23_final_adj_5mpp_surf.tif",
-         "leibnitz_beta": "Site20v2_final_adj_5mpp_surf.tif"}
+         "leibnitz_beta": "Site20v2_final_adj_5mpp_surf.tif", "haworth": "Haworth_final_adj_5mpp_surf.tif",
+         "nobile_rim_2": "DM2_final_adj_5mpp_surf.tif"}
+if sys.argv[1:]:  # only the given sites
+    FILES = {k: v for k, v in FILES.items() if k in sys.argv[1:]}
 LIMIT = 8.0
 
 for site, f in FILES.items():

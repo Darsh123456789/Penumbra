@@ -67,6 +67,50 @@
     "slope_deg": 6.34,
     "landable": true
    }
+  },
+  "haworth": {
+   "best": {
+    "slope_deg": 6.7,
+    "landable": true
+   },
+   "good": {
+    "slope_deg": 7.38,
+    "landable": true
+   },
+   "typical": {
+    "slope_deg": 1.03,
+    "landable": true
+   },
+   "poor": {
+    "slope_deg": 11.33,
+    "landable": false
+   },
+   "dispersion_aim": {
+    "slope_deg": 6.7,
+    "landable": true
+   }
+  },
+  "nobile_rim_2": {
+   "best": {
+    "slope_deg": 0.77,
+    "landable": true
+   },
+   "good": {
+    "slope_deg": 12.58,
+    "landable": false
+   },
+   "typical": {
+    "slope_deg": 12.82,
+    "landable": false
+   },
+   "poor": {
+    "slope_deg": 13.73,
+    "landable": false
+   },
+   "dispersion_aim": {
+    "slope_deg": 0.77,
+    "landable": true
+   }
   }
  }
 }

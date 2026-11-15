@@ -30,7 +30,7 @@ import geometry as g
 import simulate as S
 
 SITES = {"shackleton": "Site04_final_adj_5mpp_surf.tif", "malapert": "Site23_final_adj_5mpp_surf.tif",
-         "leibnitz_beta": "Site20v2_final_adj_5mpp_surf.tif"}
+         "leibnitz_beta": "Site20v2_final_adj_5mpp_surf.tif", "haworth": "Haworth_final_adj_5mpp_surf.tif", "nobile_rim_2": "DM2_final_adj_5mpp_surf.tif"}
 PRESET = "medium_vertical"
 PLANNED, SLIPPED, SLIP_DAYS, MISSION_DAYS = "2027-02-14T00:00:00", "2027-02-26T00:00:00", 12, 14
 RADIUS_M, MAX_SLOPE, WINDOW = 2000.0, 8.0, 30
