@@ -10,11 +10,12 @@ Step 6 — Validation summary for the web app's Trust page.
       the three PGDA 78 site maps. PENUMBRA horizons are raycast fresh at each point at the
       surface (observer height 0 m, as for a surface illumination map; PGDA 69 states none)
       and the Sun is taken directly from SPICE (DE440) hourly over the same 18.6 years.
-  (c) Shadow truth vs an LROC NAC image (needs an image in data/lroc/; otherwise not_available).
+  (c) Shadow truth: PENUMBRA lit/shadow mask vs LROC NAC M128378248LC (data/lroc/) over the whole image strip
+      in 20 m cells, IoU + overlay PNG (web/public/data/validation_shadow.png).
   (d) Chandrayaan-3 with terrain: needs a LOLA DEM covering 69.37 S (e.g. PGDA 90
       LDEM_60S_240MPP_ADJ.TIF in data/dem/); otherwise not_available.
 
-Output: web/public/data/validation.json (+ pipeline/out/validation_pgda69.png)
+Output: web/public/data/validation.json, validation_shadow.png (+ pipeline/out/validation_pgda69.png)
 Usage:  python pipeline/06_validate.py
 """
 import json
@@ -169,10 +170,201 @@ def _plot(P, rows):
     plt.close(fig)
 
 
+# ---------------------------------------------------------------- (c) shadow truth vs LROC NAC
+LROC_DIR = os.path.join(ROOT, "data", "lroc")
+NAC = {  # LROC NAC CDR M128378248LC; corner coordinates and times from its LROC product page / PDS label
+    "id": "M128378248LC", "start": "2010-05-13T08:23:02.536", "stop": "2010-05-13T08:23:34.124",
+    "lines": 52224, "samples": 2532, "scale": 3.05185094759972e-05, "offset_bytes": 2 * 2532,
+    "corners": {"UL": (-89.30, 296.84), "UR": (-89.32, 302.63), "LL": (-88.93, 153.79), "LR": (-88.95, 149.87)},
+    "incidence_center_deg": 90.93, "emission_deg": 1.69,
+}
+SHIFT_MAX_M = 300.0
+CELL_M = 20.0
+
+
+def _sun_horizon_kernel():
+    import math
+    from numba import njit, prange
+    import terrain as T
+    _height, _cart = T._height, T._cart
+
+    @njit(parallel=True, cache=False)
+    def run(px, py, az, obs_h, nz, nx0, ny0, ndx, fz, fx0, fy0, fdx, max_range):
+        out = np.full(px.shape[0], -90.0)
+        for k in prange(px.shape[0]):
+            x, y = px[k], py[k]
+            z0 = _height(nz, nx0, ny0, ndx, fz, fx0, fy0, fdx, x, y) + obs_h
+            P = _cart(x, y, z0)
+            pr = math.sqrt(P[0] ** 2 + P[1] ** 2 + P[2] ** 2)
+            U0, U1, U2 = P[0] / pr, P[1] / pr, P[2] / pr
+            rho = math.sqrt(x * x + y * y)
+            nxm, nym, exm, eym = x / rho, y / rho, y / rho, -x / rho
+            A = az[k]
+            dxm = math.cos(A) * nxm + math.sin(A) * exm
+            dym = math.cos(A) * nym + math.sin(A) * eym
+            best = -90.0
+            d = ndx
+            while d < max_range:
+                h = _height(nz, nx0, ny0, ndx, fz, fx0, fy0, fdx, x + dxm * d, y + dym * d)
+                if h > -1.0e29:
+                    Q = _cart(x + dxm * d, y + dym * d, h)
+                    vx, vy, vz = Q[0] - P[0], Q[1] - P[1], Q[2] - P[2]
+                    e = math.degrees(math.asin((vx * U0 + vy * U1 + vz * U2) / math.sqrt(vx * vx + vy * vy + vz * vz)))
+                    if e > best:
+                        best = e
+                d += max(ndx, 0.01 * d)
+            out[k] = best
+        return out
+    return run
+
+
+def _otsu(v):
+    h, edges = np.histogram(v, 512)
+    c = 0.5 * (edges[1:] + edges[:-1])
+    w = np.cumsum(h); m = np.cumsum(h * c)
+    wb, wf = w[:-1], w[-1] - w[:-1]
+    ok = (wb > 0) & (wf > 0)
+    between = np.zeros_like(wb, dtype=float)
+    between[ok] = (m[-1] * wb[ok] / w[-1] - m[:-1][ok]) ** 2 / (wb[ok] * wf[ok])
+    return float(c[:-1][np.argmax(between)])
+
+
 def part_c():
-    return {"status": "not_available", "image_id": "", "image_time_utc": "", "iou": None, "overlay_png": "",
-            "notes": "No LROC NAC image could be obtained: this build environment has no access to the LROC archive "
-                     "(data.lroc.im-ldi.com / QuickMap), and no image was supplied in data/lroc/."}
+    img_path = os.path.join(LROC_DIR, NAC["id"] + ".IMG")
+    if not os.path.exists(img_path) or not os.path.exists(os.path.join(DEM_DIR, SITES["shackleton"])):
+        return {"status": "not_available", "image_id": "", "image_time_utc": "", "iou": None, "overlay_png": "",
+                "notes": "No LROC NAC image in data/lroc/ (or Site04 map missing)."}
+    import time as _t
+    import terrain as T
+    from scipy.ndimage import uniform_filter, map_coordinates
+    near, far = T.load(SITES["shackleton"])
+    # affine (line, sample) -> map (x, y) from the four corner coordinates (least squares; residual reported)
+    L, Sm = NAC["lines"] - 1, NAC["samples"] - 1
+    ls = {"UL": (0, 0), "UR": (0, Sm), "LL": (L, 0), "LR": (L, Sm)}
+    G = np.array([[ls[k][0], ls[k][1], 1.0] for k in ls])
+    XY = np.array([T.latlon_to_xy(*NAC["corners"][k]) for k in ls], float)
+    coef, *_ = np.linalg.lstsq(G, XY, rcond=None)
+    corner_resid = float(np.max(np.linalg.norm(G @ coef - XY, axis=1)))
+    Ainv = np.linalg.inv(coef[:2].T)
+    mpl_, mps_ = np.linalg.norm(coef[0]), np.linalg.norm(coef[1])
+    # analysis cells: a regular grid in image space, ~CELL_M on the ground, 150 m inside the strip edges
+    li = np.arange(150 / mpl_, L - 150 / mpl_, CELL_M / mpl_)
+    si = np.arange(150 / mps_, Sm - 150 / mps_, CELL_M / mps_)
+    LI, SI = [a_.ravel() for a_ in np.meshgrid(li, si, indexing="ij")]
+    X, Y = (np.stack([LI, SI, np.ones_like(LI)], 1) @ coef).T
+    lat, lon = T.xy_to_latlon(X, Y)
+    b_ = near.bounds
+    in5 = (X > b_.left + 300) & (X < b_.right - 300) & (Y > b_.bottom + 300) & (Y < b_.top - 300)
+    # Sun direction for every cell at the time its image line was exposed
+    et0, et1 = g.utc_to_et(NAC["start"]), g.utc_to_et(NAC["stop"])
+    t = et0 + (et1 - et0) * LI / L
+    sv = g.body_vectors(np.array([et0, et1]), "SUN")
+    sun = sv[0] + np.outer((t - et0) / (et1 - et0), sv[1] - sv[0])
+    la, lo = np.radians(lat), np.radians(lon)
+    S = g.R_MOON * np.stack([np.cos(la) * np.cos(lo), np.cos(la) * np.sin(lo), np.sin(la)], 1)
+    v = sun - S
+    E_ = np.stack([-np.sin(lo), np.cos(lo), np.zeros_like(lo)], 1)
+    N_ = np.stack([-np.sin(la) * np.cos(lo), -np.sin(la) * np.sin(lo), np.cos(la)], 1)
+    e, n, u = (v * E_).sum(1), (v * N_).sum(1), (v * S / g.R_MOON).sum(1)
+    sel = np.degrees(np.arctan2(u, np.hypot(e, n)))
+    saz = np.arctan2(e, n)
+    run = _sun_horizon_kernel()
+    nz, nx0, ny0, ndx = near.params(); fz, fx0, fy0, fdx = far.params()
+    _t0 = _t.time()
+    hz = run(X, Y, saz, 0.0, nz, nx0, ny0, ndx, fz, fx0, fy0, fdx, T.MAX_RANGE_M)
+    lit_model = np.clip((sel - hz + SUN_R) / (2 * SUN_R), 0, 1) > 0.5
+    print(f"  shadow: {len(X)} cells raycast in {_t.time() - _t0:.0f} s, model lit {100 * lit_model.mean():.1f}%")
+    # image: I/F averaged over one cell (box of CELL_M on the ground), sampled at each cell centre (+ shifts)
+    raw = np.memmap(img_path, dtype="<i2", mode="r", offset=NAC["offset_bytes"], shape=(NAC["lines"], NAC["samples"]))
+    sub = np.asarray(raw, dtype=np.float32)
+    valid = (sub > -32000).astype(np.float32)
+    sub = np.where(sub > -32000, sub, 0) * np.float32(NAC["scale"])
+    box = (int(round(CELL_M / mpl_)), int(round(CELL_M / mps_)))
+    num, den = uniform_filter(sub, box), uniform_filter(valid, box)
+    img_nn = np.where(den > 0.99, num / np.maximum(den, 1e-6), -1).astype(np.float32)
+    del sub, valid, num, den
+
+    def sample(dx, dy, m=slice(None)):
+        qs = (np.stack([X[m] + dx, Y[m] + dy], 1) - coef[2]) @ Ainv.T
+        return map_coordinates(img_nn, [qs[:, 0], qs[:, 1]], order=1, mode="nearest")
+
+    iof0 = sample(0, 0)
+    thr = _otsu(iof0[iof0 >= 0])
+
+    def score(iof, m=slice(None)):
+        ok = iof >= 0
+        a_, bb = lit_model[m][ok], iof[ok] > thr
+        return float((a_ & bb).sum() / max(1, (a_ | bb).sum())), float((a_ == bb).mean())
+
+    iou0, acc0 = score(iof0)
+    cx = cy = 0.0
+    for step, span in ((30.0, SHIFT_MAX_M), (10.0, 30.0), (5.0, 10.0)):
+        cand = [(cx + i, cy + j) for i in np.arange(-span, span + 1, step) for j in np.arange(-span, span + 1, step)
+                if abs(cx + i) <= SHIFT_MAX_M and abs(cy + j) <= SHIFT_MAX_M]
+        cx, cy = max(cand, key=lambda c: score(sample(*c))[0])
+    iofb = sample(cx, cy)
+    rb = score(iofb)
+    best = (rb[0], rb[1], float(cx), float(cy)) if rb[0] > iou0 else (iou0, acc0, 0.0, 0.0)
+    if best[2] == 0.0 and best[3] == 0.0:
+        iofb = iof0
+    obs = (iofb > thr) & (iofb >= 0)
+    ok = iofb >= 0
+    site04 = {"n_cells": int((in5 & ok).sum()),
+              "model_lit_pct": round(float(100 * lit_model[in5 & ok].mean()), 2),
+              "image_lit_pct": round(float(100 * obs[in5 & ok].mean()), 2),
+              "pixel_agreement": round(float((lit_model == obs)[in5 & ok].mean()), 3)}
+    _shadow_png(LI, SI, li, si, lit_model, iofb, thr, best)
+    return {"status": "done", "image_id": NAC["id"], "image_time_utc": NAC["start"], "iou": round(best[0], 3),
+            "overlay_png": "validation_shadow.png",
+            "iou_nominal": round(iou0, 3), "pixel_agreement": round(best[1], 3), "pixel_agreement_nominal": round(acc0, 3),
+            "registration_shift_m": [best[2], best[3]], "cell_m": CELL_M, "n_cells": int(ok.sum()),
+            "lit_pct_model": round(float(100 * lit_model[ok].mean()), 2), "lit_pct_image": round(float(100 * obs[ok].mean()), 2),
+            "otsu_threshold_iof": round(thr, 5),
+            "sun_elev_flat_deg": [round(float(sel.min()), 3), round(float(sel.max()), 3)],
+            "inside_site04_5m_map": site04,
+            "notes": (f"LROC NAC {NAC['id']} (CDR, I/F), {NAC['start']} to {NAC['stop'][11:]} UTC, emission "
+                      f"{NAC['emission_deg']} deg, incidence {NAC['incidence_center_deg']} deg at image centre; whole 51 km "
+                      f"strip analysed in {CELL_M:.0f} m cells. Georeferenced by an affine fit to the four corner coordinates "
+                      f"on the LROC product page (fit residual {corner_resid:.0f} m); the corners are given to 0.01 deg (up "
+                      f"to ~300 m), so a +-{SHIFT_MAX_M:.0f} m translation search (30/10/5 m steps) was run: iou uses the best "
+                      f"shift ({best[2]:+.0f}, {best[3]:+.0f} m in map x, y), iou_nominal uses none. Not orthorectified "
+                      f"(no ISIS/LRO SPICE here). Model: cell lit if more than half the solar disc clears the terrain along "
+                      f"the Sun azimuth, ray from the surface, PGDA 78 Site04 5 m where available (only the first part of "
+                      f"the strip), otherwise PGDA 90 80 m, to 200 km; Sun from DE440 at each line's exposure time. Image lit "
+                      f"= cell-mean I/F above the Otsu threshold. The sunlit part of this image lies outside the 5 m map, so "
+                      f"the IoU mostly tests the 80 m map.")}
+
+
+def _shadow_png(LI, SI, li, si, lit_model, iof, thr, best):
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from matplotlib.colors import ListedColormap
+    nl, ns = len(li), len(si)
+    img = np.where(iof >= 0, iof, np.nan).reshape(nl, ns)
+    mod = lit_model.reshape(nl, ns).astype(float)
+    obs = iof > thr
+    ag = np.zeros(len(iof)); ag[lit_model & obs] = 3; ag[lit_model & ~obs] = 2; ag[~lit_model & obs] = 1
+    ag[iof < 0] = np.nan
+    ag = ag.reshape(nl, ns)
+    rows = np.nonzero((mod > 0).any(1) | (np.nan_to_num(img) > thr).any(1))[0]
+    r0, r1 = max(0, rows.min() - 20), min(nl, rows.max() + 20)
+    km = lambda i: i * NAC["lines"] / nl * 0.97 / 1e3
+    ext = [0, ns * CELL_M / 1e3, km(r1), km(r0)]
+    fig, ax = plt.subplots(1, 3, figsize=(11, 11), constrained_layout=True, sharey=True)
+    ax[0].imshow(img[r0:r1], cmap="gray", vmin=0, vmax=np.nanpercentile(img, 99.5), extent=ext, aspect="auto")
+    ax[0].set_title(f"LROC NAC {NAC['id']}\n(I/F, {CELL_M:.0f} m cells)")
+    ax[1].imshow(mod[r0:r1], cmap="gray", vmin=0, vmax=1, extent=ext, aspect="auto", interpolation="nearest")
+    ax[1].set_title("PENUMBRA lit / shadow\nsame time, LOLA terrain")
+    cm = ListedColormap(["#1a1a1a", "#56b4e9", "#d55e00", "#f0e442"])
+    ax[2].imshow(ag[r0:r1], cmap=cm, vmin=-0.5, vmax=3.5, extent=ext, aspect="auto", interpolation="nearest")
+    ax[2].set_title(f"IoU {best[0]:.2f}  yellow: both lit\nblue: image only, orange: model only")
+    ax[0].set_ylabel("Distance along image strip (km)")
+    for a_ in ax:
+        a_.set_xlabel("Across strip (km)")
+    fig.suptitle(f"Shadow truth, {NAC['start'][:19]} UTC (shift {best[2]:+.0f}, {best[3]:+.0f} m)")
+    fig.savefig(os.path.join(WEB, "validation_shadow.png"), dpi=90)
+    plt.close(fig)
 
 
 def part_d():
@@ -210,6 +402,7 @@ def main():
     pg = part_b()
     print("(b)", {k: v for k, v in pg.items() if k not in ("points", "point_sites")})
     shadow = part_c()
+    print("(c)", shadow)
     terr = part_d()
     print("(d)", terr)
     out = {"generated_utc": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
