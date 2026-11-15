@@ -84,6 +84,26 @@ sites), Stand on the rim (first-person view, your-city comparison, sonified luna
 - UI: Mission Board toggle (Off / 1 / 2 relays), card link bar + "was X%", readout rows, assumptions table; Why? line;
   Provenance sources. Not done: Timeline relay lane, Panorama relay track, Python twin (relay is browser-only).
 
+## Lander editor (Task 2, 15 Nov evening) — on main
+- Mission Board has a **"Your lander" editor**: a "Custom (edit below)" lander option plus an inline editor (battery, panel area,
+  cell and charge efficiency, load, heater, floor, panel layout), "Start from" buttons for the 3 presets, and Reset. Values are clamped,
+  recomputation is debounced 250 ms, and a red note appears when load ≥ peak solar input (this lander can never charge).
+- One resolved `lander` object drives the main cards, readout (sequent-peak battery), timeline, panorama, CSV/JSON exports and share link
+  (`&lander=custom&L=b4000,a8,e0.28,l220,h80,f20,c0.95,p=vertical_4`; malformed falls back to medium_vertical). It is stored in localStorage.
+- Custom lander: the 2027 survival track and "longest windows" are computed live (365 sims, ~0.3–0.65 s in Node), the 3 compare cards
+  are simulated live, and the Python-match sentence and Python fallbacks are hidden. Landing cloud and Plan B tabs say "computed for
+  the generic presets".
+- Engine: added the missing `vertical_4_on_side` branch to `panelFactor`, ported line-for-line from `pipeline/simulate.py`.
+  Previously it returned 0. No other physics changed.
+- **Equivalence:** custom = medium_vertical on **365/365 days × 3 sites** (live track vs `slip_<site>.json` best point), 120/120 card
+  fields identical per site. In the headless browser, the board cards are identical before and after "Start from: Mid-size".
+- Sanity (Shackleton best point, landing 2027-02-26): battery ×2 → hours-to-floor 129.7 → 140.3 h, and surviving days 206 → 222.
+  The sequent-peak battery is 12,824 Wh both times (independent of the fitted battery). Load 1500 W → fails after 3.3 h; the
+  "never charges" note appears only when load ≥ peak (e.g. 0.5 m² panels), not at 8 m² (peak 3,049 W).
+  Panel area 30 m² → 206 days (no gain: failures are long nights, not lack of daytime power).
+- Limitation: the "Pick any spot" map / Plan B spot search (Enhancement 1) was not on main when this was built, so the editor
+  does not reach them yet; any code that uses the `lander` object will pick it up automatically.
+
 ## Data that is NOT in Git (must be attached to chats that need it)
 - `pipeline/out/ephemeris_hourly.npz`, `pipeline/out/horizons_<site>.npz` — in "Prompt 1/2 - pipeline outputs.zip".
 - NASA LOLA DEMs in `data/dem/`: `Site04/Site20v2/Site23_final_adj_5mpp_surf.tif` (+ `_toterr.tif`),
