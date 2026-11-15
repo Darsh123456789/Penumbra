@@ -1,0 +1,30 @@
+[
+ {
+  "site": "shackleton",
+  "test_tiles": [
+   5,
+   6,
+   13,
+   23,
+   25
+  ],
+  "train_points": 6656,
+  "test_points": 1280,
+  "train_s": 38.6,
+  "steps": 1500,
+  "sigma": 3.0,
+  "test_median_deg": 5.059475898742676,
+  "test_p99_deg": 25.985984802246094,
+  "train_median_deg": 0.11513900756835938,
+  "train_p99_deg": 3.4868528842926025,
+  "agreement_pct": 84.30519584760275,
+  "agreement_near_horizon_pct": 59.24134478975665,
+  "ms_per_point": 0.0036428803169070217,
+  "speedup_vs_raycast_14ms": 3843.112806924896,
+  "baseline_linear_interp": {
+   "median_deg": 0.8591417390819966,
+   "p99_deg": 8.807225198184742,
+   "agreement_pct": 92.72146118721462
+  }
+ }
+]

@@ -117,7 +117,41 @@ published top-10 lists, every entry is `physics-verified`.
 
 ## 3. HELIOS: neural horizon field
 
-HELIOS_SECTION
+**Status: FAILED (all three gates fail on all three sites).** HELIOS reproduces the horizon well where it was
+trained (train median 0.08–0.11°) but cannot predict the inside of a held-out 2.6 km × 2.6 km tile to 0.05°. Near-field terrain
+inside such a tile is information the (x, y) input does not contain. It beats plain linear interpolation of the
+stored horizons only at Shackleton.
+
+### Data and split
+* Ground truth: the stored LOLA raycast horizons, `pipeline/out/horizons_<site>.npz` (96×96 points, 360 bins).
+* Held-out test: **5 of the 36 whole 16×16-point tiles per site (13.9%)**, drawn at random per site and never as random points.
+  That gives 7,936 train / 1,280 test points per site.
+* Model selection (Fourier-feature scale σ) used 5 *validation tiles taken from the training area* at Shackleton,
+  1,500 steps, and never the test tiles: σ=0.1: 0.645°, σ=0.25: 0.542°, σ=0.5: 0.451°, σ=1.5: 1.444°, σ=3: 5.059° (validation median). σ = 0.5 was chosen. A first run at σ = 6 gave a
+  5.3° test median (train 0.07°), which is severe overfitting.
+
+### Architecture
+* Input (x, y) normalised to [−1, 1], then 256 Gaussian Fourier features (σ = 0.5) plus the raw (x, y), then a 4 × 256 SiLU MLP,
+  then **127 real Fourier coefficients** (harmonics 0–63, standardised), then 360 bins through a fixed inverse-DFT basis.
+* **Deviation from the brief (about 32 coefficients):** truncating the *true* horizons to 31–32 real coefficients alone gives a
+  median error of 0.055 / 0.071 / 0.060° (Shackleton / Malapert / Leibnitz β, p99 0.43–0.55°), so 32 coefficients
+  cannot pass the 0.05° gate even with a perfect network. 127 coefficients have a truncation floor of 0.011–0.015° (p99 0.09–0.11°).
+* Loss: L1 on reconstructed elevations, ×5 weight where the true elevation is in [−2°, +8°]. Adam with a one-cycle
+  learning-rate schedule (max 2e-3), 4,000 steps of 2,048 points, CPU, about 2 min per site.
+
+### Measured results (held-out tiles)
+
+| Site | train / test pts | median \|err\| (gate < 0.05°) | p99 \|err\| (gate < 0.3°) | lit/unlit agreement, 8,760 h of 2027 (gate > 99%) | agreement when Sun within 2° of horizon | train median | linear-interp baseline: median / p99 / agreement | inference per point (speed-up vs 14 ms raycast) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| shackleton | 7936 / 1280 | 0.233° | 5.60° | 98.29% | 89.6% | 0.078° | 0.397° / 6.39° / 98.10% | 3.8 µs (3676×) |
+| malapert | 7936 / 1280 | 0.637° | 8.70° | 94.77% | 79.2% | 0.103° | 0.541° / 7.27° / 95.26% | 4.0 µs (3532×) |
+| leibnitz_beta | 7936 / 1280 | 0.830° | 8.50° | 94.17% | 79.3% | 0.110° | 0.733° / 7.63° / 94.23% | 4.2 µs (3330×) |
+
+* Gates: median **FAIL** at all sites, p99 **FAIL** at all sites, agreement **FAIL** at all sites.
+* Speed-up is about 3,300–3,700× (batch CPU inference over the 9,216-point grid, best of 5, against the quoted ~14 ms/point
+  raycast cost). It is meaningless while accuracy fails.
+* Physics fallback: the app and every other stream keep using the stored raycast horizons. HELIOS is not used
+  anywhere in PENUMBRA's results.
 
 ---
 
