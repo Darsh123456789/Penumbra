@@ -179,3 +179,25 @@ all gates fail; not used anywhere. Gate demo (276,480 candidates per site, 14 Fe
 74,656 sent to the exact simulator; all AI top-20 picks survive in the exact re-run; physics changed the #1 pick at
 Shackleton and Malapert. Main-chat audit: 5 m LOLA slopes added to the AI top-10 lists
 (`pipeline/10_point_meta.py`); 8 / 8 / 7 of 10 are steeper than 8°, because the AI search ranks by sunlight only.
+
+## 10. Relay what-if (browser only, `web/src/relay.ts`)
+The relay orbit is an assumption: a representative elliptical lunar frozen orbit in the style of ESA Lunar Pathfinder,
+sized from the NASA LCRNS reference ELFO (1,750 × 17,400 km altitude, ~30 h; arXiv:2507.22145). Inclination 57.8°,
+node 0° and phase are assumed; ω = 90°.
+
+Checks (`bash web/scripts/relay_check.sh`, Node 22):
+- Relay off: every `simulate` output is bit-identical to the pre-relay engine (365 landing days × 3 best points), and the
+  browser survival column matches the Python pipeline 365/365 at all three best points.
+- Relay on (1 and 2 relays): longest blackout ≤ direct-only and link % ≥ direct-only on every 2027 landing day (0 violations).
+- Spot check: at aposelene the relay is 17,400 km up at sub-satellite latitude −57.8°, and from Shackleton's best point
+  (89.78°S) it stands 54.6° above the horizon (azimuth 201.5°). With one relay it is ≥1° above the terrain horizon
+  86% of a 14-day mission.
+
+| Best point, landing 2027-02-14 | Direct only | 1 relay | 2 relays (180° apart) | Median reduction, all 2027 days (1 relay) |
+| --- | --- | --- | --- | --- |
+| Shackleton rim | 197.8 h | 4.8 h | 0.8 h | 172.0 h |
+| Malapert massif | 173.7 h | 4.5 h | 0.8 h | 145.2 h |
+| Leibnitz beta | 166.7 h | 4.5 h | 0.8 h | 138.2 h |
+
+Not done: no Python twin, so the relay is browser-only and not validated against Python. No J2 or Earth
+perturbations, and no link budget, antenna pointing or relay availability are modelled.

@@ -72,6 +72,18 @@ sites), Stand on the rim (first-person view, your-city comparison, sonified luna
   0.05°) and is not used. Main-chat audit added landing slopes to the AI top-10 lists: 8/10 (Shackleton), 8/10
   (Malapert), 7/10 (Leibnitz beta) are steeper than 8°, so Plan B (slope-filtered) is the landing recommendation.
 
+## Relay what-if (Task 3, browser feature) — done
+- `web/src/relay.ts`: representative ELFO relay (assumption, labelled in the UI): periselene 1,750 km / aposelene
+  17,400 km (NASA LCRNS reference ELFO, arXiv:2507.22145), a = 11,312 km, e = 0.692, period 30.0 h; i = 57.8°, Ω = 0,
+  M0 = 0 assumed; ω = 90° (aposelene over the southern hemisphere). Two-body, rotated with the Moon's 27.32 d spin.
+- `simulate(..., relay?)`: `link = (direct) || relay(et)`; new outputs `relay_only_pct`, `longest_blackout_no_relay_h`.
+  Relay off: bit-identical to the old engine on 365 days × 3 best points; Trust survival check 365/365.
+- Best points, 14 Feb 2027 landing, longest comms blackout direct → 1 relay → 2 relays: Shackleton 198 → 4.8 → 0.8 h,
+  Malapert 174 → 4.5 → 0.8 h, Leibnitz beta 167 → 4.5 → 0.8 h. Median reduction over all 2027 landing days (1 relay):
+  172 / 145 / 138 h. With the relay the blackout is never longer than direct-only (asserted, `web/scripts/relay_check.sh`).
+- UI: Mission Board toggle (Off / 1 / 2 relays), card link bar + "was X%", readout rows, assumptions table; Why? line;
+  Provenance sources. Not done: Timeline relay lane, Panorama relay track, Python twin (relay is browser-only).
+
 ## Data that is NOT in Git (must be attached to chats that need it)
 - `pipeline/out/ephemeris_hourly.npz`, `pipeline/out/horizons_<site>.npz` — in "Prompt 1/2 - pipeline outputs.zip".
 - NASA LOLA DEMs in `data/dem/`: `Site04/Site20v2/Site23_final_adj_5mpp_surf.tif` (+ `_toterr.tif`),

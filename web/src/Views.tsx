@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { json, optionalJson, loadDsn, loadEphem, loadHorizons, horizonAtIndex, nearestIndex, simulate, sky, horizonAt, utcToEt, PRESETS, fmtH } from './engine';
 import { Heatmap, Lines } from './charts';
 import { SITES, dayIso, boardSelection } from './MissionBoard';
+import { relayFn, RELAY_SOURCES } from './relay';
 
 const pct = (v: number | null | undefined, d = 1) => (v === null || v === undefined || Number.isNaN(v) ? '—' : `${v.toFixed(d)}%`);
 const Pending = ({ what }: { what: string }) => <div className="pending">{what} — results pending. This panel fills in automatically when the pipeline writes its file; nothing here is estimated.</div>;
@@ -66,6 +67,19 @@ export function Dispersion() {
 }
 
 // ------------------------------------------------------------------ Plan B + Why?
+function RelayWhy({ site, why }: { site: string; why: any }) {
+  const [r, setR] = useState<[number, number] | null>(null);
+  useEffect(() => {
+    setR(null);
+    Promise.all([loadEphem(), loadDsn(), loadHorizons(site)]).then(([e, d, g]) => {
+      const H = horizonAtIndex(g, nearestIndex(g, why.point.lat, why.point.lon)), P = PRESETS[why.preset] ?? PRESETS.medium_vertical;
+      const res = simulate(e, d, H, why.point.lat, why.point.lon, why.scenario_b_utc, why.mission_days, P, 0, relayFn('one', e, d, H, why.point.lat, why.point.lon, P.earth_margin_deg ?? 1));
+      setR([res.longest_blackout_no_relay_h, res.longest_blackout_h]);
+    });
+  }, [site, why]);
+  return r ? <span className="small">With a Pathfinder-style relay (what-if), the Earth-comms penalty at this point on the new date falls from a longest blackout of <b>{fmtH(r[0], '0h')}</b> to <b>{fmtH(r[1], '0h')}</b>. Computed live; the relay orbit is a labelled assumption.</span> : null;
+}
+
 export function PlanB() {
   const [site, setSite] = useState('shackleton');
   const [pb, setPb] = useState<any>(undefined);
@@ -118,6 +132,7 @@ export function PlanB() {
             <span className="mono" style={{ flex: '0 0 150px', textAlign: 'right', whiteSpace: 'nowrap' }}>{v > 0 ? '+' : ''}{v.toFixed(1)} {unit}</span></div>)}
           {terF && <span className="small mute">Total effect of the real terrain on the new date: {terF.delta > 0 ? '+' : ''}{terF.delta.toFixed(1)} sunlit pts compared with a flat 0° horizon — the point sits high enough that its true horizon dips below level towards the Sun, so terrain here helps rather than hurts.</span>}
           {br?.status === 'done' && <span className="small mute">Main obstruction on the new date: azimuth {br.azimuth_deg.toFixed(1)}°, {br.distance_km.toFixed(2)} km away, horizon {br.elevation_deg.toFixed(2)}° — {br.height_above_observer_m > 0 ? `a ridge ${Math.round(br.height_above_observer_m)} m above the panel` : `the point's own downslope (${Math.round(br.height_above_observer_m)} m relative to the panel): the Sun was simply too low there, not hidden by a ridge`}.</span>}
+          <RelayWhy site={site} why={why} />
           <span className="small mute">One-at-a-time swaps between the two dates; bars need not add up exactly.</span>
         </>; })()}
     </section>
@@ -187,13 +202,14 @@ export function Trust() {
 export function Provenance() {
   const tiers: [string, string, string[][]][] = [
     ['NASA · primary', 'default', [['LRO LOLA topography: PGDA 78 (5 m sites + height errors), PGDA 90 (80 m, 80–90°S)', 'Horizons, slopes, terrain-error versions'], ['JPL NAIF SPICE (DE440, Moon PA/ME frames) + JPL Horizons', 'Sun and Earth geometry, libration, validation'], ['Deep Space Network complexes (Goldstone, Madrid, Canberra)', 'Direct-to-Earth contact windows'], ['LRO Camera (LROC): NAC image M128378248LC; IM-2 site location', 'Shadow-truth check (IoU 0.71, 95% cells agree); replay target']]],
-    ['Space agency partners', 'cross-check', [['ISRO Chandrayaan-3 mission timeline', 'Real-mission sunrise/sunset check (flat and LOLA terrain)'], ['ISRO Chandrayaan-2 OHRC (sub-metre)', 'Needed to resolve IM-2-scale hazards (identified gap)'], ['ESA Moonlight / Lunar Pathfinder', 'Relay option for the long Earth blackouts']]],
+    ['Space agency partners', 'cross-check', [['ISRO Chandrayaan-3 mission timeline', 'Real-mission sunrise/sunset check (flat and LOLA terrain)'], ['ISRO Chandrayaan-2 OHRC (sub-metre)', 'Needed to resolve IM-2-scale hazards (identified gap)'], ['ESA Moonlight / Lunar Pathfinder; NASA LCRNS / LunaNet', 'Partner data: assumption for the relay what-if (representative ELFO, cited in the list below)']]],
     ['Other open sources', 'context', [['Published landing targets (CLPS, CNSA, ISRO)', 'Site library, labelled approximate where needed'], ['Open-source: SpiceyPy, NumPy, Numba, rasterio, pyproj, SciPy, React, Vite', 'Software']]],
   ];
   return <section className="panel"><h2>Data provenance: NASA first, partners as cross-checks</h2>
     <div className="row">{tiers.map(([n, b, items]) => <div key={n} className="grow" style={{ background: 'var(--panel2)', border: b === 'default' ? '2px solid var(--sun)' : '1px solid var(--line)', borderRadius: 10, padding: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between' }}><b>{n}</b><span className="badge" style={{ background: b === 'default' ? 'var(--sun)' : b === 'cross-check' ? 'var(--earth2)' : 'var(--mute)' }}>{b}</span></div>
-      {items.map(([a, c]) => <div key={a} style={{ borderTop: '1px solid var(--line)', paddingTop: 8 }}><div style={{ fontWeight: 500 }}>{a}</div><div className="small mute">{c}</div></div>)}</div>)}</div></section>;
+      {items.map(([a, c]) => <div key={a} style={{ borderTop: '1px solid var(--line)', paddingTop: 8 }}><div style={{ fontWeight: 500 }}>{a}</div><div className="small mute">{c}</div></div>)}</div>)}</div>
+    <div className="small mute"><b>Relay what-if sources</b> (partner data: assumption for what-if):<ul style={{ margin: '4px 0 0' }}>{RELAY_SOURCES.map(([t, u]) => <li key={u}><a href={u} target="_blank" rel="noreferrer">{t}</a></li>)}</ul></div></section>;
 }
 
 // ------------------------------------------------------------------ AI Lab
