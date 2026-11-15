@@ -30,7 +30,7 @@ _W = {}
 
 def _init(s):
     C.g.load_kernels()
-    _W["d"] = C.site(s)
+    _W["d"] = {k: v for k, v in C.site(s).items()}   # decompress once (NpzFile re-reads on every access)
     _W["dsn"] = C.dsn_all()
     _W["p"] = C.presets()[PRESET]
 
