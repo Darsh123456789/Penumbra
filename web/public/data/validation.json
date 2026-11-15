@@ -1,0 +1,50 @@
+{
+  "generated_utc": "2026-11-15T14:06:27Z",
+  "horizons": {
+    "max_sep_deg": 2.6863360635695186e-05,
+    "median_sep_deg": 9.125797960157003e-06,
+    "n_cases": 6,
+    "n_epochs": 726,
+    "median_note": "median of the 6 per-case median separations (Sun and Earth, 3 sites)"
+  },
+  "interpolation": {
+    "sun_max_deg": 1.5272767283331427e-05,
+    "earth_max_deg": 0.00013006814887028023
+  },
+  "pgda69": {
+    "status": "not_available",
+    "n_points": 0,
+    "r2": null,
+    "bias_pct": null,
+    "rmse_pct": null,
+    "points": [],
+    "notes": "missing in data/dem/: AVGVISIB_85S_060M_201608.TIF, Site04_final_adj_5mpp_surf.tif, Site23_final_adj_5mpp_surf.tif, Site20v2_final_adj_5mpp_surf.tif, LDEM_80S_80MPP_ADJ.tiff"
+  },
+  "shadow": {
+    "status": "not_available",
+    "image_id": "",
+    "image_time_utc": "",
+    "iou": null,
+    "overlay_png": "",
+    "notes": "No LROC NAC image could be obtained: this build environment has no access to the LROC archive (data.lroc.im-ldi.com / QuickMap), and no image was supplied in data/lroc/."
+  },
+  "chandrayaan3": {
+    "flat": {
+      "sunrise": "2023-08-21T10:30",
+      "sunset": "2023-09-04T16:10",
+      "next_sunrise": "2023-09-19T19:30"
+    },
+    "terrain": {
+      "status": "not_available",
+      "sunrise": "",
+      "sunset": "",
+      "next_sunrise": "",
+      "reason": "PENUMBRA's 5 m and 80 m maps stop at 80 S; a LOLA DEM covering 69.37 S (PGDA 90 LDEM_60S_240MPP_ADJ.TIF) was not available in data/dem/."
+    },
+    "reported": {
+      "landing": "2023-08-23",
+      "sleep": "2023-09-02 to 2023-09-04",
+      "expected_wake": "2023-09-22"
+    }
+  }
+}
