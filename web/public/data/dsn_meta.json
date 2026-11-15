@@ -1,0 +1,9 @@
+{
+  "start_utc": "2023-01-01T00:00:00",
+  "start_et_tdb_s": 725803269.1839136,
+  "step_s": 600.0,
+  "n": 526033,
+  "mask_deg": 10.0,
+  "bit_order": "little (bit i of byte i//8 is step i)",
+  "share_visible": 0.9841663926027454
+}
