@@ -37,6 +37,30 @@
       "best_sun_pct_2027": 74.48431199794754
     },
     {
+      "key": "haworth",
+      "name": "Haworth",
+      "dataset": "NASA LOLA PGDA 78 Haworth (5 m)",
+      "detailed": true,
+      "context": "One of NASA's nine Artemis III candidate regions (NASA, Oct 2024)",
+      "approximate": false,
+      "lat": -86.98827520496684,
+      "lon": 335.7354366566281,
+      "best_index": 2353,
+      "best_sun_pct_2027": 65.03215462311282
+    },
+    {
+      "key": "nobile_rim_2",
+      "name": "Nobile Rim 2",
+      "dataset": "NASA LOLA PGDA 78 DM2 (5 m)",
+      "detailed": true,
+      "context": "One of NASA's nine Artemis III candidate regions (NASA, Oct 2024)",
+      "approximate": false,
+      "lat": -84.07035247592738,
+      "lon": 59.241538298715305,
+      "best_index": 3204,
+      "best_sun_pct_2027": 51.99269788916266
+    },
+    {
       "key": "im2_replay",
       "name": "IM-2 Athena (replay)",
       "lat": -84.78,

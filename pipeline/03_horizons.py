@@ -28,6 +28,8 @@ SITES = {
     "shackleton": ("Site04_final_adj_5mpp_surf.tif", "Shackleton rim (PGDA 78 Site04)", 96),
     "malapert": ("Site23_final_adj_5mpp_surf.tif", "Malapert massif (PGDA 78 Site23)", 96),
     "leibnitz_beta": ("Site20v2_final_adj_5mpp_surf.tif", "Leibnitz beta plateau, Mons Mouton (PGDA 78 Site20v2)", 96),
+    "haworth": ("Haworth_final_adj_5mpp_surf.tif", "Haworth (NASA Artemis III candidate region; PGDA 78 Haworth)", 96),
+    "nobile_rim_2": ("DM2_final_adj_5mpp_surf.tif", "Nobile Rim 2 (NASA Artemis III candidate region; PGDA 78 DM2)", 96),
 }
 OBS_H = 2.0                    # m, solar panel height
 YEAR = ("2027-01-01T00:00:00", "2028-01-01T00:00:00")

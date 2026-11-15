@@ -1,0 +1,25 @@
+{
+  "site": "Haworth (NASA Artemis III candidate region; PGDA 78 Haworth)",
+  "dem": "Haworth_final_adj_5mpp_surf.tif",
+  "far_field": "LDEM_80S_80MPP_ADJ.tiff",
+  "grid_n": 96,
+  "observer_height_m": 2.0,
+  "x_m": [
+    -52600.0,
+    -23400.0
+  ],
+  "y_m": [
+    75900.0,
+    105100.0
+  ],
+  "azimuth_bins": "360 x 1 deg, bin k centred on k+0.5 deg, clockwise from local north",
+  "layout": "little-endian float16, row-major [point, azimuth], points ordered y-major then x",
+  "max_range_km": 200.0,
+  "best_sunlit_point": {
+    "lat": -86.98827520496684,
+    "lon": 335.7354366566281,
+    "z_m": 1788.468785251607,
+    "sun_pct_2027": 65.03215462311282,
+    "earth_pct_2027": 54.76027397260273
+  }
+}

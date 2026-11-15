@@ -11,6 +11,7 @@ Outputs (web/public/data/):
 
 Usage:  python pipeline/04_simulate.py
 """
+import sys
 import json
 import os
 import time
@@ -20,7 +21,7 @@ import numpy as np
 import geometry as g
 import simulate as S
 
-SITES = ["shackleton", "malapert", "leibnitz_beta"]
+SITES = ["shackleton", "malapert", "leibnitz_beta", "haworth", "nobile_rim_2"]
 YEAR0, NDAYS, MISSION_DAYS = "2027-01-01T00:00:00", 365, 14
 DEFAULT_START = "2027-02-14T00:00:00"
 WEB = os.path.join(os.path.dirname(g.HERE), "web", "public", "data")
@@ -44,7 +45,7 @@ def main():
     ets_all = et0 + S.STEP_S * np.arange((NDAYS + MISSION_DAYS) * steps_day)
     dsn_all, _ = S.dsn_visible(ets_all)
     n_steps = MISSION_DAYS * steps_day
-    for site in SITES:
+    for site in (sys.argv[1:] or SITES):
         t = time.time()
         d = np.load(os.path.join(g.HERE, "out", f"horizons_{site}.npz"))
         pts = pick_points(d)
