@@ -104,7 +104,7 @@ def part_b():
     if nodata is not None:
         A[A == nodata * scale + offset] = np.nan
     vmax = np.nanmax(A)
-    to_pct = 100.0 / vmax if vmax <= 1.0 + 1e-6 else (1.0 if vmax <= 100 + 1e-6 else 100.0 / 10000.0 if vmax <= 10000 else np.nan)
+    to_pct = 100.0 if vmax <= 1.5 else (1.0 if vmax <= 100 + 1e-6 else np.nan)   # stored as a fraction (int16 x 4e-5)
     rng = np.random.default_rng(69)
     et0 = g.utc_to_et(CYCLE[0])
     ets, sun = sun_vectors(et0, et0 + CYCLE[1] * 365.25 * 86400.0)
@@ -212,7 +212,7 @@ def main():
     shadow = part_c()
     terr = part_d()
     print("(d)", terr)
-    out = {"generated_utc": __import__("datetime").datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+    out = {"generated_utc": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
            "horizons": horizons, "interpolation": interp, "pgda69": pg, "shadow": shadow,
            "chandrayaan3": {"flat": flat, "terrain": terr, "reported": REPORTED}}
     with open(os.path.join(WEB, "validation.json"), "w") as f:
