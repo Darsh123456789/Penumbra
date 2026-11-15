@@ -56,8 +56,8 @@ Stand on the rim (first-person view, your-city comparison, sonified lunar day). 
   sleep 2–4 Sep, expected wake ~22 Sep.
 
 ## Audit (main chat, 15 Nov evening) — merged on main
-- Stream B merged: PGDA 69 agreement R² 0.859 (r 0.947, bias −2.9 pts, 300 points, 18.6 yr); Chandrayaan-3 with
-  LOLA terrain: sunrise 21 Aug 15:00, sunset 4 Sep 06:10, next sunrise 20 Sep 00:00 UTC; shadow overlay not available.
+- Stream B merged (incl. shadow truth: LROC NAC M128378248LC, IoU 0.71 / 0.68 unshifted, 95.2% of 233k cells agree). PGDA 69: R² 0.859 (r 0.947, bias −2.9 pts, 300 points, 18.6 yr); Chandrayaan-3 with
+  LOLA terrain: sunrise 21 Aug 15:00, sunset 4 Sep 06:10, next sunrise 20 Sep 00:00 UTC. Stream B's later ±6-day Plan B (with landing before the slipped date) was not merged; forward-only Plan B kept.
 - Plan B corrected: forward-only dates (after a slip you cannot land earlier), 30-day window. Option A: Shackleton
   162 m +6 d; Malapert 1.1 km +18 d; Leibnitz beta 535 m +17 d (all survive, physics-verified).
 - Landing slopes added (`points_meta.json`): Shackleton best-lit point 9.3° is too steep (> 8°).
