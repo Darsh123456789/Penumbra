@@ -155,6 +155,11 @@ function panelFactor(layout: string, az: number, el: number): number {
   if (layout === 'vertical_4') { let t = 0; for (let k = 0; k < 4; k++) t += 0.25 * Math.max(0, c * Math.cos((az - 90 * k) * Math.PI / 180)); return t; }
   if (layout === 'tracking_mast') return Math.max(0, c);
   if (layout === 'horizontal_deck') return Math.max(0, Math.sin(el * Math.PI / 180));
+  if (layout === 'vertical_4_on_side') { // same box on its side: one face up, two still vertical (pipeline/simulate.py)
+    let t = 0.25 * Math.max(0, Math.sin(el * Math.PI / 180));
+    for (const k of [0, 2]) t += 0.25 * Math.max(0, c * Math.cos((az - 90 * k) * Math.PI / 180));
+    return t;
+  }
   return 0;
 }
 
