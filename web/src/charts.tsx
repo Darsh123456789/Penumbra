@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import type { SimResult } from './engine';
 
 export function Panorama({ H, res, height = 240 }: { H: Float64Array; res: SimResult; height?: number }) {
@@ -86,4 +87,53 @@ export function Lines({ t, series, floor, height = 200 }: { t: number[]; series:
       {series.map((s, i) => <text key={s.name} x={W - 14} y={24 + 16 * i} fill={s.color} fontSize="12" fontWeight="600" textAnchor="end">{s.name}</text>)}
       <text x={L} y={height - 8} fill="#9AA3B5" fontSize="11">0 h</text><text x={W - 10} y={height - 8} fill="#9AA3B5" fontSize="11" textAnchor="end">{Math.round(tmax)} h</text>
     </svg>);
+}
+
+// Site map: every one of the 96 x 96 horizon points, coloured by a 2027 metric; click to analyse that exact spot.
+export type MapMode = 'sun' | 'earth' | 'both' | 'slope';
+const ramp = (stops: [number, number, number][], t: number) => {
+  t = Math.min(1, Math.max(0, t)); const k = Math.min(stops.length - 2, Math.floor(t * (stops.length - 1))), f = t * (stops.length - 1) - k;
+  return stops[k].map((a, i) => Math.round(a + (stops[k + 1][i] - a) * f)) as [number, number, number];
+};
+const SUNR: [number, number, number][] = [[12, 15, 22], [60, 40, 30], [178, 90, 40], [245, 184, 65], [255, 243, 214]];
+const EARR: [number, number, number][] = [[12, 15, 22], [25, 55, 95], [60, 120, 200], [140, 200, 255]];
+export function SiteMap({ n, vals, slope, mode, landableOnly, limit, sel, marks, onPick }: {
+  n: number; vals: (number | null)[]; slope: (number | null)[]; mode: MapMode; landableOnly: boolean; limit: number;
+  sel: number | null; marks: { k: number; label: string }[]; onPick: (k: number) => void }) {
+  const ref = useRef<HTMLCanvasElement>(null);
+  const [hover, setHover] = useState<number | null>(null);
+  useEffect(() => {
+    const c = ref.current; if (!c) return; const ctx = c.getContext('2d')!; const img = ctx.createImageData(n, n);
+    const vmax = mode === 'slope' ? 30 : Math.max(1, ...vals.map(v => v ?? 0));
+    for (let k = 0; k < n * n; k++) {
+      const i = k % n, j = Math.floor(k / n), row = n - 1 - j, o = 4 * (row * n + i), v = vals[k] ?? 0, s = slope[k];
+      let rgb: [number, number, number];
+      if (mode === 'slope') rgb = s === null ? [40, 40, 40] : s < limit ? [59, 167, 118] : s < 15 ? [245, 184, 65] : [178, 58, 48];
+      else rgb = ramp(mode === 'earth' ? EARR : SUNR, v / vmax);
+      if (landableOnly && mode !== 'slope' && (s === null || s >= limit)) rgb = rgb.map(a => Math.round(a * 0.22 + 10)) as [number, number, number];
+      img.data[o] = rgb[0]; img.data[o + 1] = rgb[1]; img.data[o + 2] = rgb[2]; img.data[o + 3] = 255;
+    }
+    ctx.putImageData(img, 0, 0);
+  }, [n, vals, slope, mode, landableOnly, limit]);
+  const pos = (k: number) => ({ x: (k % n) + 0.5, y: n - 1 - Math.floor(k / n) + 0.5 });
+  const kAt = (ev: React.MouseEvent<HTMLDivElement>) => {
+    const r = ev.currentTarget.getBoundingClientRect();
+    const i = Math.min(n - 1, Math.max(0, Math.floor((ev.clientX - r.left) / r.width * n)));
+    const row = Math.min(n - 1, Math.max(0, Math.floor((ev.clientY - r.top) / r.height * n)));
+    return (n - 1 - row) * n + i;
+  };
+  const h = hover ?? sel;
+  return (<div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxWidth: 520, width: '100%' }}>
+    <div style={{ position: 'relative', width: '100%', aspectRatio: '1 / 1', cursor: 'crosshair', borderRadius: 8, overflow: 'hidden' }}
+      onClick={ev => onPick(kAt(ev))} onMouseMove={ev => setHover(kAt(ev))} onMouseLeave={() => setHover(null)}
+      role="img" aria-label="Site map; click a point to analyse it">
+      <canvas ref={ref} width={n} height={n} style={{ width: '100%', height: '100%', imageRendering: 'pixelated', display: 'block' }} />
+      <svg viewBox={`0 0 ${n} ${n}`} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
+        {marks.map(m => { const p = pos(m.k); return <g key={m.label}><rect x={p.x - 1.2} y={p.y - 1.2} width="2.4" height="2.4" transform={`rotate(45 ${p.x} ${p.y})`} fill="#fff" stroke="#05070B" strokeWidth="0.4" />
+          <text x={p.x + 2} y={p.y + 1} fill="#fff" fontSize="3" fontWeight="600" stroke="#05070B" strokeWidth="0.6" paintOrder="stroke">{m.label}</text></g>; })}
+        {sel !== null && (() => { const p = pos(sel); return <g><circle cx={p.x} cy={p.y} r="2.2" fill="none" stroke="#5AA9FF" strokeWidth="0.7" /><line x1={p.x - 4} x2={p.x + 4} y1={p.y} y2={p.y} stroke="#5AA9FF" strokeWidth="0.35" /><line y1={p.y - 4} y2={p.y + 4} x1={p.x} x2={p.x} stroke="#5AA9FF" strokeWidth="0.35" /></g>; })()}
+      </svg>
+    </div>
+    <span className="mono small mute" style={{ minHeight: 18 }}>{h !== null ? `point #${h}${mode === 'slope' ? '' : ` · ${({ sun: 'sunlit', earth: 'Earth in view', both: 'Sun + Earth' } as Record<string, string>)[mode]} ${(vals[h] ?? 0).toFixed(1)}% of 2027`} · slope ${slope[h] ?? '—'}°${(slope[h] ?? 99) < limit ? ' (landable)' : ' (too steep)'}` : 'hover to inspect, click to analyse'}</span>
+  </div>);
 }

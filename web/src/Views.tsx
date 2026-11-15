@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { json, optionalJson, loadDsn, loadEphem, loadHorizons, horizonAtIndex, nearestIndex, simulate, sky, horizonAt, utcToEt, PRESETS, fmtH } from './engine';
 import { Heatmap, Lines } from './charts';
-import { SITES, dayIso } from './MissionBoard';
+import { SITES, dayIso, boardSelection } from './MissionBoard';
 
 const pct = (v: number | null | undefined, d = 1) => (v === null || v === undefined || Number.isNaN(v) ? '—' : `${v.toFixed(d)}%`);
 const Pending = ({ what }: { what: string }) => <div className="pending">{what} — results pending. This panel fills in automatically when the pipeline writes its file; nothing here is estimated.</div>;
@@ -258,18 +258,21 @@ export function AILab() {
 
 // ------------------------------------------------------------------ Stand on the rim (public lens)
 export function Rim() {
-  const [site, setSite] = useState('shackleton');
+  const bs = boardSelection as any;
+  const [useBoard, setUseBoard] = useState<boolean>(!!bs.site);
+  const [site, setSite] = useState(bs.site ?? 'shackleton');
   const [date, setDate] = useState('2027-02-14T06:00');
   const [lat, setLat] = useState(12.97);
   const [st, setSt] = useState<any>(null);
   const audio = useRef<AudioContext | null>(null);
   useEffect(() => {
     Promise.all([loadEphem(), loadDsn(), loadHorizons(site), json('sites.json')]).then(([e, d, g, s]) => {
-      const info = s.sites.find((x: any) => x.key === site);
-      const k = nearestIndex(g, info.lat, info.lon);
+      const base = s.sites.find((x: any) => x.key === site);
+      const info = useBoard && bs.site === site ? { ...base, lat: bs.lat, lon: bs.lon, label: bs.label } : { ...base, label: 'best-lit point' };
+      const k = useBoard && bs.site === site && bs.k !== null ? bs.k : nearestIndex(g, info.lat, info.lon);
       setSt({ e, d, H: horizonAtIndex(g, k), info });
     });
-  }, [site]);
+  }, [site, useBoard]);
   const now = useMemo(() => st ? sky(st.e, st.info.lat, st.info.lon, utcToEt(date + ':00')) : null, [st, date]);
   const doy = (() => { const t = new Date(date + ':00Z'); return Math.floor((t.getTime() - Date.UTC(t.getUTCFullYear(), 0, 0)) / 86400000); })();
   const decl = 23.44 * Math.sin((2 * Math.PI / 365) * (doy - 81));
@@ -299,6 +302,8 @@ export function Rim() {
     <section className="panel" style={{ flex: '0 1 430px' }}>
       <span className="small mute">PENUMBRA · Public lens</span>
       <h1>You are standing on {SITES.find(s => s.key === site)!.name}</h1>
+      {st && <span className="mono small mute">{st.info.label} · {st.info.lat.toFixed(3)}°, {st.info.lon.toFixed(2)}°E</span>}
+      {bs.site && <label className="small" style={{ display: 'flex', gap: 6, alignItems: 'center' }}><input type="checkbox" checked={useBoard} onChange={e => { setUseBoard(e.target.checked); if (e.target.checked) setSite(bs.site); }} />Stand on the point selected on the Mission Board ({bs.label})</label>}
       <div className="row"><label className="field">Site<select value={site} onChange={e => setSite(e.target.value)}>{SITES.map(s => <option key={s.key} value={s.key}>{s.name}</option>)}</select></label>
         <label className="field">Date and time (UTC)<input type="datetime-local" value={date} onChange={e => setDate(e.target.value)} style={{ background: 'var(--panel2)', color: 'var(--ink)', border: '1px solid var(--line2)', borderRadius: 8, padding: 9 }} /></label></div>
       {view && now && <svg viewBox={`0 0 ${W} ${Hh}`} role="img" aria-label="First-person view towards the Sun over the real horizon" style={{ width: '100%', background: '#05070B', borderRadius: 10 }}>
