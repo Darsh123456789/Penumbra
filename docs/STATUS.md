@@ -101,8 +101,9 @@ sites), Stand on the rim (first-person view, your-city comparison, sonified luna
   The sequent-peak battery is 12,824 Wh both times (independent of the fitted battery). Load 1500 W → fails after 3.3 h; the
   "never charges" note appears only when load ≥ peak (e.g. 0.5 m² panels), not at 8 m² (peak 3,049 W).
   Panel area 30 m² → 206 days (no gain: failures are long nights, not lack of daytime power).
-- Limitation: the "Pick any spot" map / Plan B spot search (Enhancement 1) was not on main when this was built, so the editor
-  does not reach them yet; any code that uses the `lander` object will pick it up automatically.
+- Merged 23:00 IST with Enhancement 1 and the relay: a custom lander now also drives picked map points, their live year track,
+  the "Plan B for this spot" search and the relay runs. Re-checked in the browser: custom = medium_vertical gives 211/365 (Malapert
+  best grid point) and 206/365 (Shackleton), identical to Python; battery 8 kWh → 215/365 at Malapert.
 
 ## Data that is NOT in Git (must be attached to chats that need it)
 - `pipeline/out/ephemeris_hourly.npz`, `pipeline/out/horizons_<site>.npz` — in "Prompt 1/2 - pipeline outputs.zip".
@@ -119,3 +120,8 @@ sites), Stand on the rim (first-person view, your-city comparison, sonified luna
 - The 2027 survival track for a picked point is computed live (365 × 14-day sims, about 1 s). Check: picking the best-lit grid index reproduces Python's survivable-day count exactly (206 / 211 / 204 of 365 at Shackleton / Malapert / Leibnitz beta, medium lander).
 - "Plan B for this spot on this date": live re-simulation of every landable point within 2 km for the selected date and lander, ranked survivors-first then by distance.
 - Not extended to a picked point: Landing cloud (needs 10 terrain variants × 4,000 draws, Python) and the Python Why? attribution. Those tabs stay on the reference points.
+
+## Final review of Tasks 2 and 3 (23:10 IST)
+- `vertical_4_on_side` panel factor in `engine.ts` checked line by line against `pipeline/simulate.py` (one face up + two vertical faces): identical.
+- Relay: off = bit-identical (audit: 108/108 browser-vs-Python states, 0 survival mismatches, no runtime errors, 390 px OK). ω = 90° places aposelene
+  over the south pole, consistent with NASA's LCRNS reference constellation (NTRS 20250002698, added to Provenance). Relay remains browser-only (no Python twin).

@@ -44,6 +44,7 @@ export const RELAY_SOURCES: [string, string][] = [
   ['ESA: Lunar Pathfinder will focus coverage on the Moon’s south pole (frozen elliptical orbit)', 'https://www.esa.int/ESA_Multimedia/Images/2021/03/Lunar_Pathfinder_will_focus_coverage_on_the_Moon_s_south_pole'],
   ['SSTL: Lunar Pathfinder, Elliptical Lunar Frozen Orbit, launch 2027', 'https://sstl.co.uk/what-we-do/lunar-mission-services'],
   ['LCRNS reference ELFO (1,750 × 17,400 km, ~30 h): arXiv:2507.22145, Sec. D', 'https://arxiv.org/pdf/2507.22145'],
+  ['NASA GSFC: LCRNS Reference Constellation 3.1 white paper (ELFOs with apolune over the south pole)', 'https://ntrs.nasa.gov/citations/20250002698'],
   ['NASA LCRNS / LunaNet relay constellation design (AAS 25-758)', 'https://ntrs.nasa.gov/api/citations/20250006883/downloads/AAS_25_758_LDN_design_v7.pdf'],
 ];
 
