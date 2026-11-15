@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { utcToEt, siteVector, enu, json, loadGrid, gridXY, xyToLatLon, survivalYear, type PointGrid, loadDsn, loadEphem, loadHorizons, horizonAtIndex, nearestIndex, simulate, bareMoonDip, PRESETS, fmtH, type Dsn, type Ephem, type HorizonGrid, type Preset, type SimResult } from './engine';
+import { utcToEt, siteVector, enu, json, optionalJson, loadGrid, gridXY, xyToLatLon, survivalYear, type PointGrid, loadDsn, loadEphem, loadHorizons, horizonAtIndex, nearestIndex, simulate, bareMoonDip, PRESETS, fmtH, type Dsn, type Ephem, type HorizonGrid, type Preset, type SimResult } from './engine';
 import { FIELDS, LAYOUTS, shown, setField, fromPreset, encode, decode, loadStored, store, peakSolarW, neverCharges } from './lander';
 import { Panorama, Timeline, SiteMap, type MapMode } from './charts';
 import { relayFn, relayAbovePct, relayState, RELAY_LABEL, ELEMENT_NOTES, type RelayMode } from './relay';
@@ -8,6 +8,8 @@ export const SITES = [
   { key: 'shackleton', name: 'Shackleton rim' },
   { key: 'malapert', name: 'Malapert massif' },
   { key: 'leibnitz_beta', name: 'Leibnitz beta / Mons Mouton' },
+  { key: 'haworth', name: 'Haworth (Artemis III region)' },
+  { key: 'nobile_rim_2', name: 'Nobile Rim 2 (Artemis III region)' },
 ];
 const POINTS = [['best', 'Best-lit point'], ['good', 'Top 5% point'], ['typical', 'Typical point'], ['poor', 'Poor point']];
 const YEAR0 = Date.UTC(2027, 0, 1);
@@ -99,7 +101,7 @@ export default function MissionBoard() {
   const [meta, setMeta] = useState<any>(null);
   useEffect(() => { json('points_meta.json').then(setMeta).catch(() => setMeta(null)); }, []);
 
-  useEffect(() => { Promise.all(SITES.map(s => json(`slip_${s.key}.json`))).then(a => setSlip(Object.fromEntries(a.map(x => [x.site, x])))); }, []);
+  useEffect(() => { Promise.all(SITES.map(s => optionalJson(`slip_${s.key}.json`))).then(a => setSlip(Object.fromEntries(a.filter(Boolean).map((x: any) => [x.site, x])))); }, []);
   useEffect(() => { Promise.all([loadEphem(), loadDsn(), loadHorizons(site)]).then(([e, d, g]) => setEng({ e, d, g, site })); }, [site]);
 
   const metric = (s: string, pt: string, dd: number) => {
