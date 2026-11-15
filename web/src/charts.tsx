@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { SimResult } from './engine';
 
-export function Panorama({ H, res, height = 240 }: { H: Float64Array; res: SimResult; height?: number }) {
+export function Panorama({ H, res, height = 240, relay }: { H: Float64Array; res: SimResult; height?: number; relay?: { az: number[]; el: number[]; up: boolean[] } }) {
   const W = 1200, top = 18, bot = height - 30;
   const s = res.series;
   const els = [...Array.from(H), ...s.sun_el, ...s.earth_el];
@@ -18,6 +18,8 @@ export function Panorama({ H, res, height = 240 }: { H: Float64Array; res: SimRe
       <polygon points={`${X(0)},${bot} ${ridge} ${X(360)},${bot}`} fill="#1A2030" stroke="#5B6478" strokeWidth="1.5" />
       {s.sun_az.map((az, i) => i % step === 0 ? <circle key={'s' + i} cx={X(az)} cy={Y(s.sun_el[i])} r="2.2" fill={s.f_sun[i] > 0.5 ? '#F5B841' : '#6b5420'} /> : null)}
       {s.earth_az.map((az, i) => i % step === 0 ? <circle key={'e' + i} cx={X(az)} cy={Y(s.earth_el[i])} r="2" fill={s.earth_up[i] ? '#5AA9FF' : '#2a4a70'} /> : null)}
+      {relay && relay.az.map((az, i) => relay.el[i] <= hi && relay.el[i] >= lo ? <circle key={'r' + i} cx={X(az)} cy={Y(relay.el[i])} r="1.8" fill={relay.up[i] ? '#C08CFF' : '#4a3a66'} /> : null)}
+      {relay && <text x="44" y="12" fill="#C08CFF" fontSize="11">Relay (what-if): {Math.round(100 * relay.el.filter(e => e > hi).length / Math.max(1, relay.el.length))}% of hours above the top of this chart (&gt; {hi}°)</text>}
       <circle cx={X(s.sun_az[0])} cy={Y(s.sun_el[0])} r="7" fill="#F5B841" />
       <text x={X(s.sun_az[0]) + 10} y={Y(s.sun_el[0]) - 8} fill="#F5B841" fontSize="12" fontWeight="600">Sun at landing {s.sun_el[0].toFixed(1)}°</text>
       <circle cx={X(s.earth_az[0])} cy={Y(s.earth_el[0])} r="6" fill="#5AA9FF" />
@@ -27,31 +29,33 @@ export function Panorama({ H, res, height = 240 }: { H: Float64Array; res: SimRe
     </svg>);
 }
 
-export function Timeline({ res }: { res: SimResult }) {
+export function Timeline({ res, relayOnly }: { res: SimResult; relayOnly?: boolean[] }) {
   const s = res.series, n = s.t_h.length, W = 1200, L = 150;
   const X = (i: number) => L + (i / n) * (W - L - 10);
   const rows: [string, boolean[], string][] = [
     ['Sun (≥ half disc)', s.f_sun.map(f => f > 0.5), '#F5B841'], ['Earth above terrain', s.earth_up, '#5AA9FF'],
     ['DSN sees the Moon', s.dsn, '#3D7ACC'], ['Direct-to-Earth link', s.link, '#7DB8FF'],
+    ...(relayOnly ? [['Relay-only link (what-if)', relayOnly, '#C08CFF'] as [string, boolean[], string]] : []),
   ];
+  const dy = relayOnly ? 34 : 0;
   const segs = (b: boolean[]) => { const out: [number, number][] = []; let st = -1; b.forEach((v, i) => { if (v && st < 0) st = i; if ((!v || i === n - 1) && st >= 0) { out.push([st, v ? i + 1 : i]); st = -1; } }); return out; };
-  const socY = (v: number) => 170 + (1 - v) * 60;
+  const socY = (v: number) => 170 + dy + (1 - v) * 60;
   return (
-    <svg viewBox={`0 0 ${W} 260`} role="img" aria-label="Mission timeline: sunlight, Earth, DSN, link and battery" style={{ width: '100%', height: 'auto' }}>
+    <svg viewBox={`0 0 ${W} ${260 + dy}`} role="img" aria-label="Mission timeline: sunlight, Earth, DSN, link and battery" style={{ width: '100%', height: 'auto' }}>
       {rows.map(([l, b, c], r) => <g key={l}>
         <text x="0" y={22 + r * 34} fill="#9AA3B5" fontSize="12">{l}</text>
         <rect x={L} y={8 + r * 34} width={W - L - 10} height="20" fill="#0F131C" rx="4" />
         {segs(b).map(([a, z]) => <rect key={a} x={X(a)} y={8 + r * 34} width={Math.max(1, X(z) - X(a))} height="20" fill={c} />)}
       </g>)}
-      <text x="0" y="200" fill="#9AA3B5" fontSize="12">Battery charge</text>
-      <rect x={L} y="170" width={W - L - 10} height="60" fill="#0F131C" rx="4" />
+      <text x="0" y={200 + dy} fill="#9AA3B5" fontSize="12">Battery charge</text>
+      <rect x={L} y={170 + dy} width={W - L - 10} height="60" fill="#0F131C" rx="4" />
       <line x1={L} x2={W - 10} y1={socY(0.2)} y2={socY(0.2)} stroke="#E0663F" strokeDasharray="4 4" />
       <polyline fill="none" stroke={res.survives ? '#3BA776' : '#E0663F'} strokeWidth="2" points={s.soc.filter((_, i) => i % 3 === 0).map((v, k) => `${X(k * 3).toFixed(1)},${socY(v).toFixed(1)}`).join(' ')} />
       {res.hours_to_floor !== null && (() => { const i0 = Math.round(res.hours_to_floor! / (s.t_h[1] || 1 / 6)); return <g>
-        <rect x={X(i0)} y="4" width={Math.max(0, W - 10 - X(i0))} height="230" fill="#05070B" opacity="0.62" />
-        <line x1={X(i0)} x2={X(i0)} y1="4" y2="234" stroke="#E0663F" strokeWidth="2" />
-        <text x={X(i0) + (X(i0) > W - 420 ? -8 : 8)} y="162" fill="#FFB3AA" fontSize="12" fontWeight="600" textAnchor={X(i0) > W - 420 ? 'end' : 'start'}>Battery floor at {Math.round(res.hours_to_floor!)} h: mission lost (no recovery assumed after this)</text></g>; })()}
-      {[0, 3.5, 7, 10.5, 14].map(d => <text key={d} x={X((d / 14) * n)} y="252" fill="#9AA3B5" fontSize="11" textAnchor={d === 0 ? 'start' : d === 14 ? 'end' : 'middle'}>day {d}</text>)}
+        <rect x={X(i0)} y="4" width={Math.max(0, W - 10 - X(i0))} height={230 + dy} fill="#05070B" opacity="0.62" />
+        <line x1={X(i0)} x2={X(i0)} y1="4" y2={234 + dy} stroke="#E0663F" strokeWidth="2" />
+        <text x={X(i0) + (X(i0) > W - 420 ? -8 : 8)} y={162 + dy} fill="#FFB3AA" fontSize="12" fontWeight="600" textAnchor={X(i0) > W - 420 ? 'end' : 'start'}>Battery floor at {Math.round(res.hours_to_floor!)} h: mission lost (no recovery assumed after this)</text></g>; })()}
+      {[0, 3.5, 7, 10.5, 14].map(d => <text key={d} x={X((d / 14) * n)} y={252 + dy} fill="#9AA3B5" fontSize="11" textAnchor={d === 0 ? 'start' : d === 14 ? 'end' : 'middle'}>day {d}</text>)}
     </svg>);
 }
 
