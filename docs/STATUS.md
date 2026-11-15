@@ -55,6 +55,17 @@ Stand on the rim (first-person view, your-city comparison, sonified lunar day). 
 - Chandrayaan-3 (flat horizon): sunrise 21 Aug, sunset 4 Sep, next sunrise 19 Sep 2023 vs landing 23 Aug,
   sleep 2–4 Sep, expected wake ~22 Sep.
 
+## Audit (main chat, 15 Nov evening) — merged on main
+- Stream B merged: PGDA 69 agreement R² 0.859 (r 0.947, bias −2.9 pts, 300 points, 18.6 yr); Chandrayaan-3 with
+  LOLA terrain: sunrise 21 Aug 15:00, sunset 4 Sep 06:10, next sunrise 20 Sep 00:00 UTC; shadow overlay not available.
+- Plan B corrected: forward-only dates (after a slip you cannot land earlier), 30-day window. Option A: Shackleton
+  162 m +6 d; Malapert 1.1 km +18 d; Leibnitz beta 535 m +17 d (all survive, physics-verified).
+- Landing slopes added (`points_meta.json`): Shackleton best-lit point 9.3° is too steep (> 8°).
+- 108 Mission Board states tested headless: all render; browser simulator = Python on survival in 108/108.
+- New outputs: rise times when landing in darkness, darkness by cause (terrain vs bare-Moon horizon), smallest
+  survivable battery (sequent-peak), mission-loss marking after the battery floor.
+- Stream A (AI) still pending: AI Lab shows "pending" until `ai_model_card.json` / `ai_search_*.json` arrive.
+
 ## Data that is NOT in Git (must be attached to chats that need it)
 - `pipeline/out/ephemeris_hourly.npz`, `pipeline/out/horizons_<site>.npz` — in "Prompt 1/2 - pipeline outputs.zip".
 - NASA LOLA DEMs in `data/dem/`: `Site04/Site20v2/Site23_final_adj_5mpp_surf.tif` (+ `_toterr.tif`),
