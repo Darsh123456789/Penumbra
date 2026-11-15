@@ -117,13 +117,13 @@ not_available: No LROC NAC image could be obtained: this build environment has n
 LOLA LDEM_60S_240MPP_ADJ.TIF, 2 m observer, Sun centre above terrain: sunrise 2023-08-21T15:00, sunset 2023-09-04T06:10, next sunrise 2023-09-20T00:00 UTC (max horizon 2.45 deg). Reported: landing 23 Aug, sleep 2-4 Sep, expected wake ~22 Sep 2023.
 
 ### 8e. Plan B after a 12-day slip (2027-02-14 → 2027-02-26, mid-size preset, 14 days)
-Search: grid points within 2 km of the best-lit point with slope < 8°, landing on the slipped date ±5 days; ranked by survives, then shortest direct-to-Earth blackout, then most sunlight.
+Search: grid points within 2 km of the best-lit point with slope < 8°, landing on the slipped date ±6 days (widened from ±5, where nothing survived); ranked by survives, then shortest direct-to-Earth blackout, then most sunlight.
 
 | Site | Original on slipped date | Candidates (points × days) | Surviving | Option A | Original point survives if shifted |
 | --- | --- | --- | --- | --- | --- |
-| Shackleton rim | fails (85.1% sunlit, battery floor at 130 h) | 25 × 11 = 275 | 0 | 162 m at 66°, +5 d: fails, 24.0% sunlit, blackout 86.0 h | +6 d |
-| Malapert massif | fails (54.6% sunlit, battery floor at 197 h) | 118 × 11 = 1298 | 0 | 1252 m at 299°, +5 d: fails, 16.1% sunlit, blackout 0.8 h | -6 d |
-| Leibnitz beta / Mons Mouton | fails (24.9% sunlit, battery floor at 65 h) | 78 × 11 = 858 | 0 | 378 m at 13°, +5 d: fails, 24.6% sunlit, blackout 0.8 h | -12 d |
+| Shackleton rim | fails (85.1% sunlit, battery floor at 130 h) | 25 × 13 = 325 | 1 | 162 m at 336°, +6 d: survives, 91.2% sunlit, blackout 80.3 h | +6 d |
+| Malapert massif | fails (54.6% sunlit, battery floor at 197 h) | 118 × 13 = 1534 | 3 | 644 m at 268°, -6 d: survives, 97.5% sunlit, blackout 242.5 h | -6 d |
+| Leibnitz beta / Mons Mouton | fails (24.9% sunlit, battery floor at 65 h) | 78 × 13 = 1014 | 0 | 378 m at 13°, +6 d: fails, 31.7% sunlit, blackout 0.7 h | -12 d |
 
 Slope source: PGDA 78 5 m map, 3x3 Horn window (15 m baseline).
 
