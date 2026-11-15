@@ -27,17 +27,17 @@ finds a Plan B when the launch slips, and explains why results change. NASA data
 | 2–3 LOLA terrain + horizon raycaster, 3 sites × 9,216 points, rays to 200 km | `terrain.py`, `03_horizons.py` | Done |
 | 4 Survival simulator + 2027 slip curves | `simulate.py`, `04_simulate.py` | Done |
 | 5 Landing-uncertainty Monte Carlo + IM-2 replay | `05_dispersion.py` | Done |
-| 6 Validation extras (PGDA 69, shadow overlay, CH-3 terrain) | `06_validate.py` | Stream B (Prompt 2) |
-| 7 Plan B search | `07_planb.py` | Stream B (Prompt 2) |
-| 8 Why? attribution | `08_why.py` | Stream B (Prompt 2) |
-| AI: HELIOS + SURVIVOR + gate | `ai/` | Stream A (Prompt 1) |
+| 6 Validation extras (PGDA 69, shadow overlay, CH-3 terrain) | `06_validate.py` | Done (Stream B) |
+| 7 Plan B search | `07_planb.py` | Done (forward-only, 30 d) |
+| 8 Why? attribution | `08_why.py` | Done (Stream B) |
+| AI: HELIOS + SURVIVOR + gate | `ai/` | Done (Stream A); gates reported honestly |
 | Web exports (DSN bitset, sites) | `09_export_web.py` | Done |
 
 ## Web app (`web/`, React + Vite + TypeScript) — status
-Six screens, live: Mission Board (slip slider over 2027, 4 cards, 360° horizon, 14-day timeline computed in the
-browser), Landing cloud (dispersion heatmaps + IM-2 replay), Plan B + Why? (waiting for Stream B files), Trust
-(4 live checks + data provenance; PGDA 69 and shadow panels waiting for Stream B), AI Lab (waiting for Stream A),
-Stand on the rim (first-person view, your-city comparison, sonified lunar day). Panels without data say "pending".
+Six screens, live and complete: Mission Board (slip slider over 2027, 4 cards with slopes and rise/set times,
+engineering readout, 360° horizon, 14-day timeline computed in the browser), Landing cloud (dispersion heatmaps +
+IM-2 replay), Plan B + Why?, Trust (6 checks + data provenance), AI Lab (SURVIVOR, HELIOS, AI-assisted search for 3
+sites), Stand on the rim (first-person view, your-city comparison, sonified lunar day).
 
 ## Measured results so far (details in `validation.md`)
 - Horizons agreement: max 2.7e-5°. Hourly-table error: Sun 1.5e-5°, Earth 1.3e-4°.
@@ -64,7 +64,13 @@ Stand on the rim (first-person view, your-city comparison, sonified lunar day). 
 - 108 Mission Board states tested headless: all render; browser simulator = Python on survival in 108/108.
 - New outputs: rise times when landing in darkness, darkness by cause (terrain vs bare-Moon horizon), smallest
   survivable battery (sequent-peak), mission-loss marking after the battery floor.
-- Stream A (AI) still pending: AI Lab shows "pending" until `ai_model_card.json` / `ai_search_*.json` arrive.
+- Stream A (AI) merged (see `docs/model_card.md`). SURVIVOR: 75,000 exact runs; on the unseen Leibnitz beta site
+  AUROC 0.9975, calibration error 0.005, 99.81% correct when it accepts alone (81% of runs); conformal coverage gates
+  fail on the unseen site (78–96% vs 90 ± 2%), so it is used only as a screener with physics verification.
+  Gate demo: 276,480 candidates per site; 1.3% / 1.9% / 27% sent to the exact simulator; all 20 AI top picks survive
+  exactly at every site; physics changed the #1 pick at 2 of 3 sites. HELIOS fails all gates (median 0.23–0.83° vs
+  0.05°) and is not used. Main-chat audit added landing slopes to the AI top-10 lists: 8/10 (Shackleton), 7/10
+  (Malapert), 6/10 (Leibnitz beta) are steeper than 8°, so Plan B (slope-filtered) is the landing recommendation.
 
 ## Data that is NOT in Git (must be attached to chats that need it)
 - `pipeline/out/ephemeris_hourly.npz`, `pipeline/out/horizons_<site>.npz` — in "Prompt 1/2 - pipeline outputs.zip".

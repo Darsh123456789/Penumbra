@@ -3,7 +3,8 @@ Step 10 — Landing-slope metadata for every point the web app shows.
 
 Horn 3x3 slope on the NASA LOLA PGDA 78 5 m map (same method as 07_planb.py) at the four
 representative points per site (slip_<site>.json) and at each dispersion aim point.
-Writes web/public/data/points_meta.json.
+Writes web/public/data/points_meta.json, and adds slope_deg / landable to each entry of
+web/public/data/ai_search_<site>.json (the AI search itself does not filter by slope).
 
 Usage:  python pipeline/10_point_meta.py
 """
@@ -28,3 +29,16 @@ for site, f in FILES.items():
     out["sites"][site] = {lab: {"slope_deg": round(float(s), 2), "landable": bool(s < LIMIT)} for lab, s in zip(labels, sl)}
     print(site, {k: v["slope_deg"] for k, v in out["sites"][site].items()})
 json.dump(out, open(os.path.join(WEB, "points_meta.json"), "w"), indent=1)
+
+# annotate the AI search top lists (additive fields; the AI's own numbers are untouched)
+for site, f in FILES.items():
+    path = os.path.join(WEB, f"ai_search_{site}.json")
+    if not os.path.exists(path):
+        continue
+    d = json.load(open(path))
+    X = np.array([t["x_m"] for t in d["top"]]); Y = np.array([t["y_m"] for t in d["top"]])
+    for t, s in zip(d["top"], planb.slopes_5m(f, X, Y)):
+        t["slope_deg"] = round(float(s), 2); t["landable"] = bool(s < LIMIT)
+    d["slope_note"] = f"slope_deg added by pipeline/10_point_meta.py ({out['slope_source']}); landable = slope < {LIMIT} deg"
+    json.dump(d, open(path, "w"), indent=1)
+    print(f"ai_search_{site}: slopes", [t["slope_deg"] for t in d["top"]])

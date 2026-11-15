@@ -168,3 +168,14 @@ TypeScript simulator agrees with the Python pipeline on survival in all 108. The
 live (365/365 agreement). New derived outputs: sunrise/Earthrise times when landing in darkness; darkness split into
 terrain-caused vs below a bare Moon's horizon (dip from the point's height); smallest battery that survives a date
 (sequent-peak drawdown of cumulative net energy / usable fraction above the floor).
+
+## 9. AI stream (Stream A) — merged; full details in `docs/model_card.md`
+SURVIVOR (5-model LightGBM ensembles, 75,000 exact simulator runs, test = the whole unseen Leibnitz beta site):
+AUROC 0.9975, ECE 0.0049, accuracy of AI-accepted runs 99.81% (81.1% accepted); conformal coverage on the unseen site
+95.6% / 89.6% / 78.3% / 87.0% (P(survive) / sunlit / blackout / hours to floor) against a 90 ± 2% gate: 3 of 5 gates
+fail, so SURVIVOR is a screener whose top picks and uncertain candidates are always re-run exactly. Speed-up 3.1×
+end to end (5.2× model only). HELIOS: median horizon error 0.23 / 0.64 / 0.83° on held-out tiles against 0.05°;
+all gates fail; not used anywhere. Gate demo (276,480 candidates per site, 14 Feb – 15 Mar 2027): 3,672 / 5,223 /
+74,656 sent to the exact simulator; all AI top-20 picks survive in the exact re-run; physics changed the #1 pick at
+Shackleton and Malapert. Main-chat audit: 5 m LOLA slopes added to the AI top-10 lists
+(`pipeline/10_point_meta.py`); 8 / 7 / 6 of 10 are steeper than 8°, because the AI search ranks by sunlight only.

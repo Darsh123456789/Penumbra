@@ -197,28 +197,61 @@ export function Provenance() {
 }
 
 // ------------------------------------------------------------------ AI Lab
+const AI_SITES = [['shackleton', 'Shackleton rim'], ['malapert', 'Malapert massif'], ['leibnitz_beta', 'Leibnitz beta / Mons Mouton (unseen in training)']];
 export function AILab() {
-  const [mc, setMc] = useState<any>(undefined), [srch, setSrch] = useState<any>(undefined);
-  useEffect(() => { optionalJson('ai_model_card.json').then(setMc); optionalJson('ai_search_shackleton.json').then(setSrch); }, []);
-  const model = (k: string, title: string, role: string) => { const m = mc?.[k]; return <section className="panel grow">
-    <div style={{ display: 'flex', justifyContent: 'space-between' }}><div><h2>{title}</h2><span className="small mute">{role}</span></div>
-      <span className="badge" style={{ background: !m ? 'var(--line2)' : m.status === 'passed' ? 'var(--good)' : m.status === 'failed' ? 'var(--sun)' : 'var(--line2)', color: !m || m.status === 'not_run' ? 'var(--ink)' : '#05070B' }}>{m ? m.status : 'pending'}</span></div>
-    {!m ? <Pending what={title} /> : <>
-      <span className="small mute">{m.architecture} · train {m.train_points ?? m.train_runs} / test {m.test_points ?? m.test_runs} · {m.test_split}</span>
-      <table className="t"><thead><tr><th>Gate</th><th>Target</th><th>Measured</th><th></th></tr></thead><tbody>{m.gates.map((g: any) => <tr key={g.name}><td>{g.name}</td><td className="mono">{g.target}</td><td className="mono">{typeof g.measured === 'number' ? g.measured.toPrecision(3) : g.measured} {g.unit}</td><td>{g.pass ? '✓' : '✗'}</td></tr>)}</tbody></table>
-      {m.speedup_vs_exact ? <span className="small mute">Speed-up vs exact physics: {Math.round(m.speedup_vs_exact).toLocaleString()}×</span> : null}</>}
-  </section>; };
+  const [mc, setMc] = useState<any>(undefined), [site, setSite] = useState('shackleton'), [srch, setSrch] = useState<any>(undefined);
+  useEffect(() => { optionalJson('ai_model_card.json').then(setMc); }, []);
+  useEffect(() => { setSrch(undefined); optionalJson(`ai_search_${site}.json`).then(setSrch); }, [site]);
+  const num = (v: any, d = 3) => typeof v === 'number' ? (Math.abs(v) >= 100 ? v.toFixed(1) : v.toPrecision(d)) : String(v);
+  const badge = (m: any) => <span className="badge" style={{ background: !m ? 'var(--line2)' : m.status === 'passed' ? 'var(--good)' : 'var(--sun)', color: !m ? 'var(--ink)' : '#05070B' }}>{!m ? 'pending' : m.status === 'passed' ? 'all gates passed' : `${m.gates.filter((g: any) => !g.pass).length} of ${m.gates.length} gates failed`}</span>;
+  const gates = (m: any) => <table className="t"><thead><tr><th>Gate (held-out data)</th><th>Target</th><th>Measured</th><th></th></tr></thead>
+    <tbody>{m.gates.map((g: any) => <tr key={g.name}><td>{g.name}</td><td className="mono">{g.target}</td><td className="mono">{num(g.measured)} {g.unit}</td><td style={{ color: g.pass ? 'var(--good)' : 'var(--bad)' }}>{g.pass ? 'pass' : 'fail'}</td></tr>)}</tbody></table>;
+  if (mc === undefined) return <span className="mute">loading…</span>;
+  if (mc === null) return <Pending what="AI models" />;
+  const sv = mc.survivor, he = mc.helios;
+  const acc = sv.info_metrics?.find((m: any) => m.name.startsWith('Accuracy of AI-accepted'));
+  const auroc = sv.info_metrics?.find((m: any) => m.name.startsWith('AUROC'));
+  const steep = srch?.top?.filter((t: any) => t.landable === false).length ?? 0;
   return (<>
-    <section className="panel"><h1>AI proposes, physics verifies</h1><p className="mute" style={{ margin: 0, lineHeight: 1.5 }}>Two models trained on labels from PENUMBRA's own physics engine. A model ships only if it passes its gates on terrain it never saw; anything uncertain is re-run by the exact simulator, and every result is tagged with how it was produced.</p></section>
-    <div className="row">{model('helios', 'HELIOS', 'Neural horizon field: 360° horizon at any point')}{model('survivor', 'SURVIVOR', 'Mission-survival surrogate with conformal error bars')}</div>
-    <section className="panel"><h2>Gate activity: last AI-assisted search</h2>
-      {!mc?.gate_activity ? <Pending what="Gate activity" /> : <div className="kv" style={{ gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))' }}>
-        <div><span>Candidates scored by AI</span><span>{mc.gate_activity.candidates_scored.toLocaleString()}</span></div>
-        <div><span>Sent to exact re-run</span><span>{mc.gate_activity.sent_to_exact.toLocaleString()}</span></div>
-        <div><span>Accepted on AI alone</span><span>{mc.gate_activity.accepted_by_ai.toLocaleString()}</span></div>
-        <div><span>Top pick changed by physics?</span><span>{mc.gate_activity.top_pick_changed_after_verification ? 'yes' : 'no'}</span></div></div>}
-      {srch && <div className="scroll"><table className="t" style={{ minWidth: 640 }}><thead><tr><th>#</th><th>Point</th><th>AI P(survive)</th><th>90% interval</th><th>Verified</th><th>Sunlit</th><th>Tag</th></tr></thead>
-        <tbody>{srch.top.map((t: any) => <tr key={t.rank}><td>{t.rank}</td><td className="mono">{t.lat.toFixed(3)}, {t.lon.toFixed(2)}E</td><td className="mono">{(100 * t.ai_p_survive).toFixed(0)}%</td><td className="mono">{t.ai_interval.map((v: number) => (100 * v).toFixed(0)).join('–')}%</td><td>{t.verified_survives ? 'survives' : 'fails'}</td><td className="mono">{pct(t.verified_sunlit_pct, 0)}</td><td><span className="tag">{t.tag}</span></td></tr>)}</tbody></table></div>}
+    <section className="panel"><h1>AI proposes, physics verifies</h1>
+      <p className="mute" style={{ margin: 0, lineHeight: 1.6 }}>Two models were trained on labels from PENUMBRA's own physics engine and tested on data they never saw. Both are reported against pre-set gates, pass or fail. <b style={{ color: 'var(--ink)' }}>What the app uses:</b> SURVIVOR screens hundreds of thousands of site–date candidates; every candidate it is unsure about, and every top pick, is re-run by the exact simulator, and only exact numbers are shown as results. HELIOS missed its accuracy gates, so it is not used anywhere: all horizons come from the LOLA raycaster.</p>
+    </section>
+    <div className="row">
+      <section className="panel grow">
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}><div><h2>SURVIVOR</h2><span className="small mute">Mission-survival surrogate with conformal error bars · used as a screener</span></div>{badge(sv)}</div>
+        <span className="small mute">{sv.architecture} · {sv.train_runs.toLocaleString()} training runs from the exact simulator · test: {sv.test_split}</span>
+        <div className="kv" style={{ gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))' }}>
+          {auroc && <div><span>AUROC, unseen site</span><span>{auroc.measured.toFixed(4)}</span></div>}
+          {acc && <div><span>Correct when AI accepts alone</span><span>{acc.measured.toFixed(2)}%</span></div>}
+          <div><span>Accepted without re-run (unseen site)</span><span>{sv.ai_accept_share_test_pct?.toFixed(1)}%</span></div>
+          <div><span>Flagged as unfamiliar (unseen site)</span><span>{sv.ood_flag_rate_test_site_pct?.toFixed(1)}%</span></div>
+        </div>
+        {gates(sv)}
+        <span className="small mute">Why gates fail: the error bars are calibrated on Shackleton and Malapert, and a new site breaks that calibration (coverage 78–96% instead of 90 ± 2%). The survival classifier itself is accurate, so it is used only to decide which candidates need the exact simulator. Speed-up over the exact simulator: {sv.speedup_vs_exact}× end to end (the simulator is already fast at about 2 ms per 14-day mission), {sv.speedup_note?.match(/model only ([0-9.]+x)/)?.[1] ?? '—'} for the model alone.</span>
+      </section>
+      <section className="panel grow">
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}><div><h2>HELIOS</h2><span className="small mute">Neural horizon field · not used in results</span></div>{badge(he)}</div>
+        <span className="small mute">{he.architecture} · test: {he.test_split}</span>
+        {gates(he)}
+        <div className="scroll"><table className="t"><thead><tr><th>Site (held-out tiles)</th><th>Median err</th><th>p99 err</th><th>Lit/unlit agree</th><th>Plain interpolation</th></tr></thead>
+          <tbody>{he.per_site.map((r: any) => <tr key={r.site}><td>{r.site.replace('_', ' ')}</td><td className="mono">{r.test_median_deg.toFixed(2)}°</td><td className="mono">{r.test_p99_deg.toFixed(1)}°</td><td className="mono">{r.agreement_pct.toFixed(1)}%</td><td className="mono">{r.baseline_linear_interp.median_deg.toFixed(2)}° / {r.baseline_linear_interp.agreement_pct.toFixed(1)}%</td></tr>)}</tbody></table></div>
+        <span className="small mute">HELIOS is about 3,300× faster than raycasting but cannot infer terrain it has not seen inside a held-out 2.6 km tile, and beats plain interpolation only at Shackleton. Speed without accuracy is not useful, so PENUMBRA keeps the exact raycast horizons.</span>
+      </section>
+    </div>
+    <section className="panel">
+      <div className="row" style={{ justifyContent: 'space-between', alignItems: 'flex-end' }}>
+        <div><h2>AI-assisted search: every grid point × 30 landing days (14 Feb – 15 Mar 2027)</h2><span className="small mute">Accepted on AI alone only if in-distribution and the 0.95 conformal interval is clear of 0.5; the top 20 and every uncertain or unfamiliar candidate are re-run exactly.</span></div>
+        <label className="field">Site<select value={site} onChange={e => setSite(e.target.value)}>{AI_SITES.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select></label>
+      </div>
+      {mc.gate_activity_all_sites && <div className="scroll"><table className="t" style={{ minWidth: 640 }}><thead><tr><th>Site</th><th>Candidates scored</th><th>Sent to exact simulator</th><th>Accepted on AI alone</th><th>Top pick changed by physics?</th></tr></thead>
+        <tbody>{mc.gate_activity_all_sites.map((g: any) => <tr key={g.site} style={{ background: g.site === site ? 'rgba(245,184,65,0.08)' : undefined }}><td>{g.site.replace('_', ' ')}</td><td className="mono">{g.candidates_scored.toLocaleString()}</td><td className="mono">{g.sent_to_exact.toLocaleString()} ({(100 * g.sent_to_exact / g.candidates_scored).toFixed(1)}%)</td><td className="mono">{g.accepted_by_ai.toLocaleString()}</td><td>{g.top_pick_changed_after_verification ? 'yes' : 'no'}</td></tr>)}</tbody></table></div>}
+      {srch === undefined ? <span className="mute">loading…</span> : srch === null ? <Pending what="AI search" /> : <>
+        <div className="scroll"><table className="t" style={{ minWidth: 820 }}><thead><tr><th>#</th><th>Point</th><th>Land</th><th>AI P(survive) · interval</th><th>AI sunlit → exact</th><th>Exact outcome</th><th>Slope</th><th>Tag</th></tr></thead>
+          <tbody>{srch.top.map((t: any) => <tr key={t.rank}><td>{t.rank}</td><td className="mono">{t.lat.toFixed(3)}°, {t.lon.toFixed(2)}°E</td><td className="mono">{t.landing_utc.slice(0, 10)}</td><td className="mono">{(100 * t.ai_p_survive).toFixed(0)}% · {t.ai_interval.map((v: number) => (100 * v).toFixed(0)).join('–')}%</td>
+            <td className="mono">{t.ai_sunlit_pct?.toFixed(1)}% → {pct(t.verified_sunlit_pct, 1)}</td><td style={{ color: t.verified_survives ? 'var(--good)' : 'var(--bad)' }}>{t.verified_survives ? 'survives' : 'fails'}</td>
+            <td className="mono" style={{ color: t.landable === false ? 'var(--bad)' : 'var(--ink)' }}>{t.slope_deg !== undefined ? `${t.slope_deg.toFixed(1)}°${t.landable ? '' : ' too steep'}` : '—'}</td><td><span className="tag">{t.tag}</span></td></tr>)}</tbody></table></div>
+        <span className="small mute">The AI under-predicts sunlight at the very top of the range, so the exact re-run decides the order among survivors. The AI search ranks by sunlight only; the 5 m LOLA slope check shows {steep} of these 10 are steeper than the 8° landing limit — the Plan B Finder, which filters by slope first, is the source for landing recommendations.</span>
+      </>}
     </section>
   </>);
 }
