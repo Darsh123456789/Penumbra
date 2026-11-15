@@ -1,5 +1,5 @@
 {
-  "generated_utc": "2026-11-15T14:19:28Z",
+  "generated_utc": "2026-11-15T15:14:32Z",
   "horizons": {
     "max_sep_deg": 2.6863360635695186e-05,
     "median_sep_deg": 9.125797960157003e-06,
@@ -1545,12 +1545,34 @@
     "notes": "PGDA 69 AVGVISIB_85S_060M_201608.TIF (60 m/px, 85-90 S, hourly over 18.6 yr). PENUMBRA: fresh raycast at each PGDA 69 pixel centre, observer height 0 m (surface; PGDA 69 states no height), PGDA 78 5 m near field + PGDA 90 80 m far field to 200 km, Sun from SPICE DE440 hourly 2016-08-01 + 18.6 yr, partial solar disc counted. 100 random pixels per site (seed 69). PGDA 69 values scaled by 100 to percent (map max 0.88444). CRS checked: PROJCS[\"Moon2000_spole\",GEOGCS[\"GCS_Moon\",DATUM[\"D_Moon_2000\",SPHEROID[\"Moon_200..."
   },
   "shadow": {
-    "status": "not_available",
-    "image_id": "",
-    "image_time_utc": "",
-    "iou": null,
-    "overlay_png": "",
-    "notes": "No LROC NAC image could be obtained: this build environment has no access to the LROC archive (data.lroc.im-ldi.com / QuickMap), and no image was supplied in data/lroc/."
+    "status": "done",
+    "image_id": "M128378248LC",
+    "image_time_utc": "2010-05-13T08:23:02.536",
+    "iou": 0.71,
+    "overlay_png": "validation_shadow.png",
+    "iou_nominal": 0.684,
+    "pixel_agreement": 0.952,
+    "pixel_agreement_nominal": 0.947,
+    "registration_shift_m": [
+      -260.0,
+      -10.0
+    ],
+    "cell_m": 20.0,
+    "n_cells": 233496,
+    "lit_pct_model": 16.5,
+    "lit_pct_image": 11.92,
+    "otsu_threshold_iof": 0.01074,
+    "sun_elev_flat_deg": [
+      -1.558,
+      -0.313
+    ],
+    "inside_site04_5m_map": {
+      "n_cells": 85802,
+      "model_lit_pct": 0.0,
+      "image_lit_pct": 0.01,
+      "pixel_agreement": 1.0
+    },
+    "notes": "LROC NAC M128378248LC (CDR, I/F), 2010-05-13T08:23:02.536 to 08:23:34.124 UTC, emission 1.69 deg, incidence 90.93 deg at image centre; whole 51 km strip analysed in 20 m cells. Georeferenced by an affine fit to the four corner coordinates on the LROC product page (fit residual 22 m); the corners are given to 0.01 deg (up to ~300 m), so a +-300 m translation search (30/10/5 m steps) was run: iou uses the best shift (-260, -10 m in map x, y), iou_nominal uses none. Not orthorectified (no ISIS/LRO SPICE here). Model: cell lit if more than half the solar disc clears the terrain along the Sun azimuth, ray from the surface, PGDA 78 Site04 5 m where available (only the first part of the strip), otherwise PGDA 90 80 m, to 200 km; Sun from DE440 at each line's exposure time. Image lit = cell-mean I/F above the Otsu threshold. The sunlit part of this image lies outside the 5 m map, so the IoU mostly tests the 80 m map."
   },
   "chandrayaan3": {
     "flat": {

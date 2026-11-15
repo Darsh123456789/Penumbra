@@ -111,7 +111,12 @@ Method: PGDA 69 AVGVISIB_85S_060M_201608.TIF (60 m/px, 85-90 S, hourly over 18.6
 Scatter: `pipeline/out/validation_pgda69.png`; points in `validation.json`.
 
 ### 8c. Shadow truth vs LROC NAC
-not_available: No LROC NAC image could be obtained: this build environment has no access to the LROC archive (data.lroc.im-ldi.com / QuickMap), and no image was supplied in data/lroc/.
+LROC NAC M128378248LC, 2010-05-13T08:23:02 UTC (Sun -1.558 to -0.313 deg above a flat horizon along the strip): **IoU of the lit areas = 0.71** (0.68 with no registration shift), cell-by-cell agreement 95.2% over 233,496 cells of 20 m. Lit share: PENUMBRA 16.5%, image 11.9%.
+Inside the 5 m Site04 map (85,802 cells) both say dark: model 0.0% lit, image 0.01% lit.
+
+The terminator (where shadow gives way to sunlight) is reproduced along the whole strip. The shadowed crater interiors in the lit zone are matched too. Most disagreement is dim ground (orange in the figure) that PENUMBRA calls lit but whose I/F falls below the single Otsu threshold.
+
+Method: LROC NAC M128378248LC (CDR, I/F), 2010-05-13T08:23:02.536 to 08:23:34.124 UTC, emission 1.69 deg, incidence 90.93 deg at image centre; whole 51 km strip analysed in 20 m cells. Georeferenced by an affine fit to the four corner coordinates on the LROC product page (fit residual 22 m); the corners are given to 0.01 deg (up to ~300 m), so a +-300 m translation search (30/10/5 m steps) was run: iou uses the best shift (-260, -10 m in map x, y), iou_nominal uses none. Not orthorectified (no ISIS/LRO SPICE here). Model: cell lit if more than half the solar disc clears the terrain along the Sun azimuth, ray from the surface, PGDA 78 Site04 5 m where available (only the first part of the strip), otherwise PGDA 90 80 m, to 200 km; Sun from DE440 at each line's exposure time. Image lit = cell-mean I/F above the Otsu threshold. The sunlit part of this image lies outside the 5 m map, so the IoU mostly tests the 80 m map. Figure: `web/public/data/validation_shadow.png`.
 
 ### 8d. Chandrayaan-3 with terrain
 LOLA LDEM_60S_240MPP_ADJ.TIF, 2 m observer, Sun centre above terrain: sunrise 2023-08-21T15:00, sunset 2023-09-04T06:10, next sunrise 2023-09-20T00:00 UTC (max horizon 2.45 deg). Reported: landing 23 Aug, sleep 2-4 Sep, expected wake ~22 Sep 2023.
