@@ -1,0 +1,60 @@
+{
+  "site": "shackleton",
+  "metric": "sunlit_pct",
+  "scenario_a_utc": "2027-02-14T00:00:00",
+  "scenario_b_utc": "2027-02-26T00:00:00",
+  "preset": "medium_vertical",
+  "mission_days": 14,
+  "point": {
+    "lat": -89.77973,
+    "lon": 203.8626
+  },
+  "value_a": 97.37,
+  "value_b": 85.12,
+  "link_pct_a": 40.77,
+  "link_pct_b": 38.44,
+  "factors": [
+    {
+      "name": "Sun path (season and date)",
+      "delta": -12.25,
+      "how": "B's Sun vectors with A's Earth, DSN, terrain and 2 m panel, minus value_a"
+    },
+    {
+      "name": "Earth path (libration)",
+      "delta": 0.0,
+      "link_delta": -2.33,
+      "how": "B's Earth vectors and DSN times with A's Sun; delta = sunlit change, link_delta = link_pct change"
+    },
+    {
+      "name": "Terrain horizon",
+      "delta": 85.12,
+      "delta_on_change": -12.25,
+      "flat_a": 0.0,
+      "flat_b": 0.0,
+      "how": "value_b with the real LOLA horizon minus scenario B with a flat 0-deg horizon"
+    },
+    {
+      "name": "Panel height",
+      "delta": 0.55,
+      "b_2m": 85.12,
+      "b_5m": 85.66,
+      "raycast_check_max_abs_deg_vs_grid": 0.001,
+      "how": "scenario B, 5 m vs 2 m panel, both raycast fresh with terrain.horizons()"
+    }
+  ],
+  "blocking_ridge": {
+    "azimuth_deg": 31.5,
+    "blocked_steps": 12,
+    "blocked_steps_total": 300,
+    "tied_bins": 19,
+    "tie_break": "highest terrain horizon among bins with the most blocked steps",
+    "horizon_elev_deg_grid": 1.037,
+    "distance_km": 9.894,
+    "height_above_observer_m": 207.6,
+    "elevation_deg": 1.037,
+    "sample_height_m": 1946.7,
+    "observer_eye_m": 1739.1,
+    "status": "done"
+  },
+  "note": "One-at-a-time attribution; bars need not add up exactly. Comms factor: swapping in B's Earth path (and DSN station times) changes link_pct by -2.3 points (A 40.8% -> B 38.4%); Earth's path cannot change sunlight (measured sunlit delta +0.0). Terrain and panel-height bars are measured on the slipped date B."
+}

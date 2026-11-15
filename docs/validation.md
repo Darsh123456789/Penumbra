@@ -92,3 +92,49 @@ Interpretation: the crater Athena came to rest in is smaller than one 80 m pixel
 the mission is invisible in the best public map of that spot, and a generic lander model cannot reproduce the
 real ~13 h outcome. This is a data-resolution finding: sub-metre terrain (e.g. ISRO Chandrayaan-2 OHRC-derived
 DEMs) would be needed to resolve it. PENUMBRA reports this limit rather than tuning the model to match.
+
+## 8. Stream B — validation extras, Plan B, Why? (`pipeline/06_validate.py`, `07_planb.py`, `08_why.py`)
+
+### 8a. Copied checks (`validation.json`)
+Horizons: max separation 2.7e-05 deg, median 9.1e-06 deg (6 cases, 726 epochs). Interpolation: Sun max 1.5e-05 deg, Earth max 1.3e-04 deg. Chandrayaan-3 flat horizon (re-run): sunrise 2023-08-21T10:30, sunset 2023-09-04T16:10, next sunrise 2023-09-19T19:30 UTC.
+
+### 8b. NASA PGDA 69 average illumination
+300 PGDA 69 pixels (60 m/px map, 100 random per site map): **R² = 0.859**, bias -2.9 points, RMSE 5.6 points, Pearson r 0.947.
+
+| Site | n | Bias (PENUMBRA − PGDA 69) | RMSE | r |
+| --- | --- | --- | --- | --- |
+| Shackleton rim | 100 | -1.7 | 6.5 | 0.905 |
+| Malapert massif | 100 | -3.8 | 5.7 | 0.940 |
+| Leibnitz beta / Mons Mouton | 100 | -3.1 | 4.5 | 0.972 |
+
+Method: PGDA 69 AVGVISIB_85S_060M_201608.TIF (60 m/px, 85-90 S, hourly over 18.6 yr). PENUMBRA: fresh raycast at each PGDA 69 pixel centre, observer height 0 m (surface; PGDA 69 states no height), PGDA 78 5 m near field + PGDA 90 80 m far field to 200 km, Sun from SPICE DE440 hourly 2016-08-01 + 18.6 yr, partial solar disc counted. 100 random pixels per site (seed 69). PGDA 69 values scaled by 100 to percent (map max 0.88444). CRS checked: PROJCS["Moon2000_spole",GEOGCS["GCS_Moon",DATUM["D_Moon_2000",SPHEROID["Moon_200...
+Scatter: `pipeline/out/validation_pgda69.png`; points in `validation.json`.
+
+### 8c. Shadow truth vs LROC NAC
+not_available: No LROC NAC image could be obtained: this build environment has no access to the LROC archive (data.lroc.im-ldi.com / QuickMap), and no image was supplied in data/lroc/.
+
+### 8d. Chandrayaan-3 with terrain
+LOLA LDEM_60S_240MPP_ADJ.TIF, 2 m observer, Sun centre above terrain: sunrise 2023-08-21T15:00, sunset 2023-09-04T06:10, next sunrise 2023-09-20T00:00 UTC (max horizon 2.45 deg). Reported: landing 23 Aug, sleep 2-4 Sep, expected wake ~22 Sep 2023.
+
+### 8e. Plan B after a 12-day slip (2027-02-14 → 2027-02-26, mid-size preset, 14 days)
+Search: grid points within 2 km of the best-lit point with slope < 8°, landing on the slipped date ±5 days; ranked by survives, then shortest direct-to-Earth blackout, then most sunlight.
+
+| Site | Original on slipped date | Candidates (points × days) | Surviving | Option A | Original point survives if shifted |
+| --- | --- | --- | --- | --- | --- |
+| Shackleton rim | fails (85.1% sunlit, battery floor at 130 h) | 25 × 11 = 275 | 0 | 162 m at 66°, +5 d: fails, 24.0% sunlit, blackout 86.0 h | +6 d |
+| Malapert massif | fails (54.6% sunlit, battery floor at 197 h) | 118 × 11 = 1298 | 0 | 1252 m at 299°, +5 d: fails, 16.1% sunlit, blackout 0.8 h | -6 d |
+| Leibnitz beta / Mons Mouton | fails (24.9% sunlit, battery floor at 65 h) | 78 × 11 = 858 | 0 | 378 m at 13°, +5 d: fails, 24.6% sunlit, blackout 0.8 h | -12 d |
+
+Slope source: PGDA 78 5 m map, 3x3 Horn window (15 m baseline).
+
+### 8f. Why? (sunlit % at the best-lit point, A = 2027-02-14, B = 2027-02-26)
+
+| Site | A | B | Sun path | Earth path (sunlit / link) | Terrain (B real − B flat) | Panel 5 m vs 2 m (B) | Blocking ridge |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Shackleton rim | 97.4 | 85.1 | -12.2 | +0.0 / -2.3 | +85.1 | +0.6 | az 31.5°, 9.894 km, +208 m |
+| Malapert massif | 100.0 | 54.6 | -45.4 | +0.0 / -1.1 | +41.6 | +0.0 | az 131.5°, 0.225 km, -9 m |
+| Leibnitz beta / Mons Mouton | 100.0 | 24.9 | -75.0 | +0.0 / -0.5 | +24.9 | +1.4 | az 100.5°, 0.36 km, -6 m |
+
+One-at-a-time swaps; bars need not add up. Earth's path cannot change sunlight (measured 0), only the comms metric link_pct. The terrain bar is large and positive because a flat 0° horizon hides most or all of the Sun on these dates: the best-lit points sit high enough that their real horizon dips below 0° in the Sun's direction.
+Blocking ridge: at Shackleton the blocker is a real ridge 9.9 km away, 208 m above the panel (horizon 1.04°). At Malapert and Leibnitz beta the highest-angle sample along that azimuth is the point's own downslope, 0.2-0.4 km away and below the panel (horizon -2.25° and -0.93°): there the Sun was simply too low, not hidden by a ridge. Ridge-raycast elevations match the stored grid horizons to 0.002°.
+Note: on the 5 m map the Shackleton best-lit point itself has a 9.3° slope, above the 8° landing limit.
