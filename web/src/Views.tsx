@@ -8,12 +8,12 @@ const pct = (v: number | null | undefined, d = 1) => (v === null || v === undefi
 const Pending = ({ what }: { what: string }) => <div className="pending">{what} — results pending. This panel fills in automatically when the pipeline writes its file; nothing here is estimated.</div>;
 
 // ------------------------------------------------------------------ Dispersion Cloud
-const CASES = [['shackleton', 'Shackleton rim'], ['malapert', 'Malapert massif'], ['leibnitz_beta', 'Leibnitz beta / Mons Mouton'], ['im2_replay', 'IM-2 Athena replay (80 m terrain)']];
+const CASES = [['shackleton', 'Shackleton rim'], ['malapert', 'Malapert massif'], ['leibnitz_beta', 'Leibnitz beta / Mons Mouton'], ['haworth', 'Haworth (Artemis III region)'], ['nobile_rim_2', 'Nobile Rim 2 (Artemis III region)'], ['im2_replay', 'IM-2 Athena replay (80 m terrain)']];
 export function Dispersion() {
   const [cs, setCs] = useState('shackleton');
   const [d, setD] = useState<any>(null);
   const [pm, setPm] = useState<any>(null);
-  useEffect(() => { setD(null); json(`dispersion_${cs}.json`).then(setD); }, [cs]);
+  useEffect(() => { setD(null); optionalJson(`dispersion_${cs}.json`).then(setD); }, [cs]);
   useEffect(() => { optionalJson('points_meta.json').then(setPm); }, []);
   const aimSlope = pm?.sites?.[cs]?.dispersion_aim?.slope_deg as number | undefined;
   const marks = d ? [{ x: 0, y: 0, label: `Aim · ${Math.round(100 * d.target_cell_p)}%`, kind: 'aim' as const },
@@ -195,13 +195,14 @@ export function Trust() {
           </div>
           <span className="small mute">LROC NAC {val.shadow.image_id}, {val.shadow.image_time_utc.slice(0, 19).replace('T', ' ')} UTC, Sun {val.shadow.sun_elev_flat_deg[0].toFixed(2)}° to {val.shadow.sun_elev_flat_deg[1].toFixed(2)}° above a flat horizon. The terminator and the shadowed crater floors are reproduced along the 51 km strip; most disagreement is dim, low-angle ground the model calls lit but that falls under the single brightness threshold. Limits: georeferenced from the product's corner coordinates (±300 m), so the best of a ±300 m shift search is reported beside the unshifted value; not orthorectified; the sunlit part of this strip lies on the 80 m map, so this mainly tests the far-field terrain.</span></> : <Pending what="Shadow overlay" />)}
     </div>
+    <section className="panel"><h2>New sites: Haworth and Nobile Rim 2 (Artemis III candidate regions)</h2><span className="small">Haworth and Nobile Rim 2 (PGDA 78 map DM2) run on exactly the same validated code path as the three original sites (same raycaster, ephemeris, simulator and browser engine). The site-specific checks above (PGDA 69, LROC shadow truth) were measured on the original three sites only; for both new sites the browser simulator was re-checked against the Python pipeline on all 365 landing days of 2027.</span></section>
     <Provenance />
   </>);
 }
 
 export function Provenance() {
   const tiers: [string, string, string[][]][] = [
-    ['NASA · primary', 'default', [['LRO LOLA topography: PGDA 78 (5 m sites + height errors), PGDA 90 (80 m, 80–90°S)', 'Horizons, slopes, terrain-error versions'], ['JPL NAIF SPICE (DE440, Moon PA/ME frames) + JPL Horizons', 'Sun and Earth geometry, libration, validation'], ['Deep Space Network complexes (Goldstone, Madrid, Canberra)', 'Direct-to-Earth contact windows'], ['LRO Camera (LROC): NAC image M128378248LC; IM-2 site location', 'Shadow-truth check (IoU 0.71, 95% cells agree); replay target']]],
+    ['NASA · primary', 'default', [['LRO LOLA topography: PGDA 78 (5 m sites Site04, Site23, Site20v2, Haworth, DM2 + height errors), PGDA 90 (80 m, 80–90°S)', 'Horizons, slopes, terrain-error versions'], ['NASA Artemis III candidate landing regions (Oct 2024, nasa.gov)', 'Site context: Haworth, Nobile Rim 2, Malapert Massif, Mons Mouton'], ['JPL NAIF SPICE (DE440, Moon PA/ME frames) + JPL Horizons', 'Sun and Earth geometry, libration, validation'], ['Deep Space Network complexes (Goldstone, Madrid, Canberra)', 'Direct-to-Earth contact windows'], ['LRO Camera (LROC): NAC image M128378248LC; IM-2 site location', 'Shadow-truth check (IoU 0.71, 95% cells agree); replay target']]],
     ['Space agency partners', 'cross-check', [['ISRO Chandrayaan-3 mission timeline', 'Real-mission sunrise/sunset check (flat and LOLA terrain)'], ['ISRO Chandrayaan-2 OHRC (sub-metre)', 'Needed to resolve IM-2-scale hazards (identified gap)'], ['ESA Moonlight / Lunar Pathfinder; NASA LCRNS / LunaNet', 'Partner data: assumption for the relay what-if (representative ELFO, cited in the list below)']]],
     ['Other open sources', 'context', [['Published landing targets (CLPS, CNSA, ISRO)', 'Site library, labelled approximate where needed'], ['Open-source: SpiceyPy, NumPy, Numba, rasterio, pyproj, SciPy, React, Vite', 'Software']]],
   ];
