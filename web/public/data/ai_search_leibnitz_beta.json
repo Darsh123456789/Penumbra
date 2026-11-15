@@ -1,0 +1,195 @@
+{
+ "site": "leibnitz_beta",
+ "landing_utc": "2027-02-14T00:00:00",
+ "preset": "medium_vertical",
+ "mission_days": 14,
+ "landing_window_days": 30,
+ "candidate": "grid point x landing day (00:00 UTC)",
+ "candidates_scored": 276480,
+ "sent_to_exact": 74656,
+ "accepted_by_ai": 201824,
+ "ood_candidates": 74291,
+ "top_pick_changed_after_verification": false,
+ "top": [
+  {
+   "rank": 1,
+   "lat": -85.39054,
+   "lon": 31.53001,
+   "x_m": 73133.7,
+   "y_m": 119203.2,
+   "landing_utc": "2027-02-14T00:00:00",
+   "ai_p_survive": 1.0,
+   "ai_interval": [
+    1.0,
+    1.0
+   ],
+   "ai_sunlit_pct": 99.59,
+   "ood": false,
+   "verified_survives": true,
+   "verified_sunlit_pct": 100.0,
+   "tag": "physics-verified"
+  },
+  {
+   "rank": 2,
+   "lat": -85.38304,
+   "lon": 31.47282,
+   "x_m": 73133.7,
+   "y_m": 119470.5,
+   "landing_utc": "2027-02-14T00:00:00",
+   "ai_p_survive": 1.0,
+   "ai_interval": [
+    1.0,
+    1.0
+   ],
+   "ai_sunlit_pct": 99.5,
+   "ood": false,
+   "verified_survives": true,
+   "verified_sunlit_pct": 100.0,
+   "tag": "physics-verified"
+  },
+  {
+   "rank": 3,
+   "lat": -85.38011,
+   "lon": 31.32254,
+   "x_m": 72866.3,
+   "y_m": 119737.9,
+   "landing_utc": "2027-02-14T00:00:00",
+   "ai_p_survive": 1.0,
+   "ai_interval": [
+    1.0,
+    1.0
+   ],
+   "ai_sunlit_pct": 99.49,
+   "ood": false,
+   "verified_survives": true,
+   "verified_sunlit_pct": 100.0,
+   "tag": "physics-verified"
+  },
+  {
+   "rank": 4,
+   "lat": -85.37553,
+   "lon": 31.41581,
+   "x_m": 73133.7,
+   "y_m": 119737.9,
+   "landing_utc": "2027-02-14T00:00:00",
+   "ai_p_survive": 1.0,
+   "ai_interval": [
+    1.0,
+    1.0
+   ],
+   "ai_sunlit_pct": 99.52,
+   "ood": false,
+   "verified_survives": true,
+   "verified_sunlit_pct": 100.0,
+   "tag": "physics-verified"
+  },
+  {
+   "rank": 5,
+   "lat": -85.37715,
+   "lon": 31.17246,
+   "x_m": 72598.9,
+   "y_m": 120005.3,
+   "landing_utc": "2027-02-14T00:00:00",
+   "ai_p_survive": 1.0,
+   "ai_interval": [
+    1.0,
+    1.0
+   ],
+   "ai_sunlit_pct": 99.48,
+   "ood": false,
+   "verified_survives": true,
+   "verified_sunlit_pct": 100.0,
+   "tag": "physics-verified"
+  },
+  {
+   "rank": 6,
+   "lat": -85.37259,
+   "lon": 31.26582,
+   "x_m": 72866.3,
+   "y_m": 120005.3,
+   "landing_utc": "2027-02-14T00:00:00",
+   "ai_p_survive": 1.0,
+   "ai_interval": [
+    1.0,
+    1.0
+   ],
+   "ai_sunlit_pct": 99.49,
+   "ood": false,
+   "verified_survives": true,
+   "verified_sunlit_pct": 100.0,
+   "tag": "physics-verified"
+  },
+  {
+   "rank": 7,
+   "lat": -85.36801,
+   "lon": 31.35899,
+   "x_m": 73133.7,
+   "y_m": 120005.3,
+   "landing_utc": "2027-02-14T00:00:00",
+   "ai_p_survive": 1.0,
+   "ai_interval": [
+    1.0,
+    1.0
+   ],
+   "ai_sunlit_pct": 99.5,
+   "ood": false,
+   "verified_survives": true,
+   "verified_sunlit_pct": 100.0,
+   "tag": "physics-verified"
+  },
+  {
+   "rank": 8,
+   "lat": -85.45126,
+   "lon": 28.91003,
+   "x_m": 66716.8,
+   "y_m": 120807.4,
+   "landing_utc": "2027-02-14T00:00:00",
+   "ai_p_survive": 1.0,
+   "ai_interval": [
+    1.0,
+    1.0
+   ],
+   "ai_sunlit_pct": 99.51,
+   "ood": false,
+   "verified_survives": true,
+   "verified_sunlit_pct": 100.0,
+   "tag": "physics-verified"
+  },
+  {
+   "rank": 9,
+   "lat": -85.44429,
+   "lon": 28.60882,
+   "x_m": 66182.1,
+   "y_m": 121342.1,
+   "landing_utc": "2027-02-14T00:00:00",
+   "ai_p_survive": 1.0,
+   "ai_interval": [
+    1.0,
+    1.0
+   ],
+   "ai_sunlit_pct": 99.52,
+   "ood": false,
+   "verified_survives": true,
+   "verified_sunlit_pct": 100.0,
+   "tag": "physics-verified"
+  },
+  {
+   "rank": 10,
+   "lat": -85.35347,
+   "lon": 29.73634,
+   "x_m": 69925.3,
+   "y_m": 122411.6,
+   "landing_utc": "2027-02-14T00:00:00",
+   "ai_p_survive": 1.0,
+   "ai_interval": [
+    1.0,
+    1.0
+   ],
+   "ai_sunlit_pct": 99.46,
+   "ood": false,
+   "verified_survives": true,
+   "verified_sunlit_pct": 100.0,
+   "tag": "physics-verified"
+  }
+ ]
+}

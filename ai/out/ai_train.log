@@ -1,0 +1,78 @@
+{
+ "train_runs": 35082,
+ "isotonic_runs": 5052,
+ "calibration_runs": 10251,
+ "test_runs": 24615,
+ "fit_s": 101.8,
+ "test_survive_rate": 0.0296973390209222,
+ "train_survive_rate": 0.02702240465195827,
+ "conformal_q": {
+  "survives_neg": 0.0,
+  "survives_neg_gate": 0.0,
+  "survives_pos": 0.0,
+  "survives_pos_gate": 13.138948620520512,
+  "sunlit_pct": 1.8785077936001757,
+  "longest_blackout_h": 1.5515917278976645,
+  "hours_to_floor": 1.2205239497673968
+ },
+ "ood_threshold": 3.8764755010604857,
+ "coverage_test_pct": {
+  "survives": 95.56368068251066,
+  "sunlit_pct": 89.63640056875889,
+  "longest_blackout_h": 78.33028641072517,
+  "hours_to_floor": 87.04448507007922
+ },
+ "coverage_test_in_distribution_pct": {
+  "survives": 95.52950526524936,
+  "sunlit_pct": 90.50268229684086,
+  "longest_blackout_h": 76.71368964832108,
+  "hours_to_floor": 87.02563083647924
+ },
+ "coverage_calibration_pct": {
+  "survives": 98.27333918642084,
+  "sunlit_pct": 90.02048580626281,
+  "longest_blackout_h": 90.02048580626281,
+  "hours_to_floor": 90.08877182713881
+ },
+ "coverage_test_by_class_pct": {
+  "failures": 95.70423714620667,
+  "survivors": 90.97127222982216
+ },
+ "mean_interval_width": {
+  "survives": 0.0,
+  "sunlit_pct": 2.750314310399463,
+  "longest_blackout_h": 5.696589701617978,
+  "hours_to_floor": 6.261159874051213,
+  "survives_gate": 0.2565791945535933
+ },
+ "mae_test": {
+  "sunlit_pct": 0.675768253550325,
+  "longest_blackout_h": 1.981127452788365,
+  "hours_to_floor": 3.2913119668104533
+ },
+ "ece_test": 0.004865830047937692,
+ "ece_calibration": 0.0020485498206098303,
+ "auroc_test": 0.9974566709914151,
+ "accuracy_test_pct": 99.61811903310989,
+ "brier_test": 0.0035767548164575237,
+ "ood_flag_rate_test_site_pct": 18.212472069876092,
+ "ood_flag_rate_calibration_pct": 1.0047800214613207,
+ "ms_per_run_simulate": 2.1294002323601386,
+ "ms_per_run_surrogate_model": 0.4099043445999996,
+ "ms_per_run_features": 0.2778011393734308,
+ "speedup_model_only": 5.194871097153384,
+ "speedup_end_to_end": 3.0963839637527277,
+ "coverage_test_gate_interval_pct": 95.72618322161284,
+ "ai_confident_share_test_pct": 81.0765793215519,
+ "ai_confident_accuracy_test_pct": 99.80959061983265,
+ "ood_recall_shifted_test_pct": {
+  "battery_x3_panel_x2": 100.0,
+  "horizon_plus_8deg": 99.86187284176316,
+  "load_x3": 100.0
+ },
+ "ood_recall_shifted_calibration_pct": {
+  "battery_x3_panel_x2": 93.42503170422398,
+  "horizon_plus_8deg": 89.61076968100673,
+  "load_x3": 100.0
+ }
+}

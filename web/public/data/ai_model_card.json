@@ -1,0 +1,121 @@
+{
+ "generated_utc": "2026-11-15T15:12:55Z",
+ "helios": {
+  "status": "not_run"
+ },
+ "survivor": {
+  "status": "failed",
+  "architecture": "5-model LightGBM ensemble per target (P(survive) isotonic-calibrated; sunlit_pct, longest_blackout_h, hours_to_floor L1 regressors); normalised split conformal (Mondrian for the 0/1 label); kNN OOD flag",
+  "train_runs": 35082,
+  "test_runs": 24615,
+  "test_split": "train on shackleton + malapert (split by grid point: 70% fit / 10% isotonic / 20% conformal calibration); test on every leibnitz_beta run (site never seen)",
+  "gates": [
+   {
+    "name": "Conformal coverage, held-out site: P(survive) 90% interval",
+    "target": "90% \u00b1 2%",
+    "measured": 95.5637,
+    "unit": "%",
+    "pass": false
+   },
+   {
+    "name": "Conformal coverage, held-out site: sunlit_pct",
+    "target": "90% \u00b1 2%",
+    "measured": 89.6364,
+    "unit": "%",
+    "pass": true
+   },
+   {
+    "name": "Conformal coverage, held-out site: longest_blackout_h",
+    "target": "90% \u00b1 2%",
+    "measured": 78.3303,
+    "unit": "%",
+    "pass": false
+   },
+   {
+    "name": "Conformal coverage, held-out site: hours_to_floor",
+    "target": "90% \u00b1 2%",
+    "measured": 87.0445,
+    "unit": "%",
+    "pass": false
+   },
+   {
+    "name": "Expected calibration error of P(survive), held-out site",
+    "target": "< 0.03",
+    "measured": 0.0049,
+    "unit": "",
+    "pass": true
+   }
+  ],
+  "info_metrics": [
+   {
+    "name": "AUROC, held-out site",
+    "target": "report",
+    "measured": 0.9975,
+    "unit": "",
+    "pass": true
+   },
+   {
+    "name": "OOD recall, shifted set: battery x3 + panel x2",
+    "target": "report",
+    "measured": 100.0,
+    "unit": "%",
+    "pass": true
+   },
+   {
+    "name": "OOD recall, shifted set: horizon +8 deg",
+    "target": "report",
+    "measured": 99.8619,
+    "unit": "%",
+    "pass": true
+   },
+   {
+    "name": "OOD recall, shifted set: load x3",
+    "target": "report",
+    "measured": 100.0,
+    "unit": "%",
+    "pass": true
+   },
+   {
+    "name": "Accuracy of AI-accepted runs, held-out site",
+    "target": "report",
+    "measured": 99.8096,
+    "unit": "%",
+    "pass": true
+   }
+  ],
+  "speedup_vs_exact": 3.1,
+  "speedup_note": "end-to-end incl. feature extraction (2.13 ms simulate vs 0.69 ms surrogate); model only 5.2x",
+  "ood_flag_rate_test_site_pct": 18.21,
+  "ai_accept_share_test_pct": 81.08
+ },
+ "gate_activity": {
+  "site": "shackleton",
+  "candidates_scored": 276480,
+  "sent_to_exact": 3672,
+  "accepted_by_ai": 272808,
+  "top_pick_changed_after_verification": true
+ },
+ "gate_activity_all_sites": [
+  {
+   "site": "shackleton",
+   "candidates_scored": 276480,
+   "sent_to_exact": 3672,
+   "accepted_by_ai": 272808,
+   "top_pick_changed_after_verification": true
+  },
+  {
+   "site": "malapert",
+   "candidates_scored": 276480,
+   "sent_to_exact": 5223,
+   "accepted_by_ai": 271257,
+   "top_pick_changed_after_verification": true
+  },
+  {
+   "site": "leibnitz_beta",
+   "candidates_scored": 276480,
+   "sent_to_exact": 74656,
+   "accepted_by_ai": 201824,
+   "top_pick_changed_after_verification": false
+  }
+ ]
+}

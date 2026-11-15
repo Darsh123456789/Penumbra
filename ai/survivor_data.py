@@ -20,7 +20,7 @@ _W = {}
 def _init():
     C.g.load_kernels()
     _W["dsn"] = C.dsn_all()
-    _W["sites"] = {s: C.site(s) for s in C.SITES}
+    _W["sites"] = {s: dict(C.site(s).items()) for s in C.SITES}   # decompress once
     _W["P"] = C.presets()
 
 
