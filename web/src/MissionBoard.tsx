@@ -41,11 +41,21 @@ function Card({ title, sub, m, warn }: { title: string; sub: string; m: any; war
     </article>);
 }
 
+const q0 = new URLSearchParams(location.hash.split('?')[1] ?? '');
+
+function download(name: string, text: string, type: string) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
 export default function MissionBoard() {
-  const [site, setSite] = useState('shackleton');
-  const [point, setPoint] = useState('best');
-  const [preset, setPreset] = useState('medium_vertical');
-  const [day, setDay] = useState(PLANNED + 12);
+  const [site, setSite] = useState(q0.get('site') ?? 'shackleton');
+  const [point, setPoint] = useState(q0.get('pt') ?? 'best');
+  const [preset, setPreset] = useState(q0.get('lander') ?? 'medium_vertical');
+  const [day, setDay] = useState(q0.has('day') ? Math.min(364, Math.max(0, +q0.get('day')!)) : PLANNED + 12);
+  const [copied, setCopied] = useState(false);
+  useEffect(() => { history.replaceState(null, '', `#board?site=${site}&pt=${point}&lander=${preset}&day=${day}`); }, [site, point, preset, day]);
   const [slip, setSlip] = useState<Record<string, any>>({});
   const [eng, setEng] = useState<{ e: Ephem; d: Dsn; g: HorizonGrid; site: string } | null>(null);
 
@@ -78,6 +88,16 @@ export default function MissionBoard() {
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
         <h2>Launch slipped? Drag to re-plan every card at once</h2>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <button className="ghost" onClick={() => { navigator.clipboard?.writeText(location.href); setCopied(true); setTimeout(() => setCopied(false), 2000); }}>{copied ? 'Link copied' : 'Copy share link'}</button>
+          <button className="ghost" disabled={!live} onClick={() => live && pinfo && download(`penumbra_${site}_${point}_${dayLabel(day)}.csv`,
+            'hour,sun_visible_fraction,sun_az_deg,sun_el_deg,earth_az_deg,earth_el_deg,earth_above_terrain,dsn_sees_moon,link,battery_soc\n' +
+            live.series.t_h.map((t, i) => [t.toFixed(3), live.series.f_sun[i].toFixed(3), live.series.sun_az[i].toFixed(2), live.series.sun_el[i].toFixed(3), live.series.earth_az[i].toFixed(2), live.series.earth_el[i].toFixed(3), +live.series.earth_up[i], +live.series.dsn[i], +live.series.link[i], live.series.soc[i].toFixed(4)].join(',')).join('\n'), 'text/csv')}>Export timeline (CSV)</button>
+          <button className="ghost" disabled={!live} onClick={() => live && pinfo && download(`penumbra_${site}_${point}_${dayLabel(day)}.json`, JSON.stringify({
+            scenario: { site, point, lat: pinfo.lat, lon: pinfo.lon, landing_utc: dayIso(day), mission_days: 14, lander: PRESETS[preset] },
+            result: Object.fromEntries(Object.entries(live).filter(([k]) => k !== 'series')),
+            sources: 'NASA LRO LOLA (PGDA 78, 90), NASA/JPL NAIF SPICE DE440, DSN complexes; PENUMBRA pipeline', generated_utc: new Date().toISOString() }, null, 2), 'application/json')}>Export scenario (JSON)</button>
+        </div>
         <span className="mute">Planned landing <b className="mono">{dayLabel(PLANNED)}</b> · now <b className="mono" style={{ color: 'var(--sun)' }}>{dayLabel(day)}</b> ({day - PLANNED >= 0 ? '+' : ''}{day - PLANNED} days)</span>
       </div>
       <div style={{ display: 'flex', height: 10, borderRadius: 5, overflow: 'hidden' }} aria-hidden="true">

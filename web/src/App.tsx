@@ -9,8 +9,8 @@ const TABS = [
 type Tab = typeof TABS[number][0];
 
 export default function App() {
-  const [tab, setTab] = useState<Tab>(() => (location.hash.slice(1) as Tab) || 'board');
-  useEffect(() => { location.hash = tab; window.scrollTo(0, 0); }, [tab]);
+  const [tab, setTab] = useState<Tab>(() => (location.hash.slice(1).split('?')[0] as Tab) || 'board');
+  useEffect(() => { if (location.hash.slice(1).split('?')[0] !== tab) { location.hash = tab; window.scrollTo(0, 0); } }, [tab]);
   return (<>
     <header className="top">
       <div className="brand">
