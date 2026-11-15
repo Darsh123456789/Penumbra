@@ -35,9 +35,11 @@
     },
     {
       "name": "Panel height",
-      "delta": null,
-      "status": "not_available",
-      "reason": "needs the LOLA _surf 5 m map and LDEM_80S_80MPP_ADJ.tiff in data/dem/ to raycast at 5 m"
+      "delta": 0.0,
+      "b_2m": 54.66,
+      "b_5m": 54.66,
+      "raycast_check_max_abs_deg_vs_grid": 0.002,
+      "how": "scenario B, 5 m vs 2 m panel, both raycast fresh with terrain.horizons()"
     }
   ],
   "blocking_ridge": {
@@ -47,10 +49,12 @@
     "tied_bins": 59,
     "tie_break": "highest terrain horizon among bins with the most blocked steps",
     "horizon_elev_deg_grid": -2.254,
-    "distance_km": null,
-    "height_above_observer_m": null,
-    "status": "not_available",
-    "reason": "raycast needs the LOLA maps in data/dem/"
+    "distance_km": 0.225,
+    "height_above_observer_m": -8.9,
+    "elevation_deg": -2.254,
+    "sample_height_m": 5158.0,
+    "observer_eye_m": 5166.9,
+    "status": "done"
   },
   "note": "One-at-a-time attribution; bars need not add up exactly. Comms factor: swapping in B's Earth path (and DSN station times) changes link_pct by -1.1 points (A 48.0% -> B 46.8%); Earth's path cannot change sunlight (measured sunlit delta +0.0). Terrain and panel-height bars are measured on the slipped date B."
 }
