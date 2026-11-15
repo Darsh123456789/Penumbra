@@ -1,0 +1,45 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+:root { --bg:#0B0E14; --panel:#131826; --panel2:#0F131C; --line:#232A3B; --line2:#2C3448; --ink:#E6E9F0; --mute:#9AA3B5;
+  --sun:#F5B841; --earth:#5AA9FF; --earth2:#7DB8FF; --good:#3BA776; --bad:#E0663F; --crit:#B23A30; }
+* { box-sizing: border-box; }
+body { margin:0; background:var(--bg); color:var(--ink); font-family:Inter,system-ui,sans-serif; font-size:14px; }
+a { color:var(--earth2); }
+h1,h2,h3 { font-family:'Space Grotesk',sans-serif; margin:0; }
+h1 { font-size:26px; } h2 { font-size:18px; font-weight:600; } h3 { font-size:15px; }
+.mono { font-family:'JetBrains Mono',monospace; }
+.mute { color:var(--mute); }
+.small { font-size:12px; }
+header.top { display:flex; flex-wrap:wrap; gap:12px 20px; align-items:center; justify-content:space-between; padding:12px 20px; border-bottom:1px solid var(--line); background:var(--panel2); position:sticky; top:0; z-index:5; }
+.brand { display:flex; gap:10px; align-items:center; }
+.brand b { font-family:'Space Grotesk'; letter-spacing:.08em; font-size:18px; }
+nav.tabs { display:flex; flex-wrap:wrap; gap:4px; background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:4px; }
+nav.tabs button { background:transparent; color:var(--mute); border:0; border-radius:7px; padding:9px 13px; font:inherit; cursor:pointer; min-height:40px; }
+nav.tabs button.on { background:var(--line); color:var(--ink); font-weight:600; }
+main { padding:20px; max-width:1440px; margin:0 auto; display:flex; flex-direction:column; gap:18px; }
+.panel { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px 18px; display:flex; flex-direction:column; gap:12px; min-width:0; }
+.row { display:flex; flex-wrap:wrap; gap:16px; }
+.grow { flex:1 1 320px; min-width:0; }
+.cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:14px; }
+.card { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:10px; }
+.card.warn { border:2px solid var(--sun); }
+.big { font-family:'Space Grotesk'; font-size:34px; font-weight:700; line-height:1; }
+.kv { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+.kv div { background:var(--panel2); border-radius:8px; padding:8px 10px; display:flex; flex-direction:column; gap:2px; }
+.kv span:first-child { font-size:11px; color:var(--mute); }
+.kv span:last-child { font-family:'JetBrains Mono'; font-size:15px; font-weight:600; }
+.badge { font-size:11px; font-weight:700; padding:3px 8px; border-radius:6px; color:#05070B; white-space:nowrap; }
+.bar { height:6px; background:var(--line); border-radius:3px; } .bar > div { height:6px; border-radius:3px; }
+label.field { display:flex; flex-direction:column; gap:5px; font-size:12px; color:var(--mute); }
+select, input[type=text], input[type=number] { background:var(--panel2); border:1px solid var(--line2); border-radius:8px; color:var(--ink); padding:9px 10px; font:inherit; min-height:40px; }
+input[type=range] { width:100%; accent-color:var(--sun); }
+button.primary { background:var(--sun); color:#1A1406; border:0; border-radius:8px; padding:10px 14px; font-weight:600; font:inherit; font-weight:600; cursor:pointer; min-height:42px; }
+button.ghost { background:transparent; color:var(--ink); border:1px solid var(--line2); border-radius:8px; padding:10px 14px; font:inherit; cursor:pointer; min-height:42px; }
+table.t { width:100%; border-collapse:collapse; font-size:13px; }
+table.t th { text-align:left; color:var(--mute); font-weight:500; padding:8px 6px; border-bottom:1px solid var(--line); }
+table.t td { padding:8px 6px; border-bottom:1px solid var(--line); }
+.scroll { overflow-x:auto; }
+.pending { border:1px dashed var(--line2); border-radius:10px; padding:16px; color:var(--mute); }
+.tag { font-size:11px; border:1px solid var(--line2); border-radius:6px; padding:2px 7px; color:var(--mute); }
+svg text { font-family:Inter,sans-serif; }
+footer { padding:16px 20px 30px; color:var(--mute); font-size:12px; max-width:1440px; margin:0 auto; line-height:1.6; }
+@media (max-width:700px) { main { padding:12px; } .big { font-size:28px; } }

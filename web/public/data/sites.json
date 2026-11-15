@@ -1,0 +1,60 @@
+{
+  "sites": [
+    {
+      "key": "shackleton",
+      "name": "Shackleton rim",
+      "dataset": "NASA LOLA PGDA 78 Site04 (5 m)",
+      "detailed": true,
+      "context": "Chang'e-7 is targeting the Shackleton rim area; Artemis interest",
+      "approximate": false,
+      "lat": -89.77972828108844,
+      "lon": 203.8625572418921,
+      "best_index": 5125,
+      "best_sun_pct_2027": 79.89473783972618
+    },
+    {
+      "key": "malapert",
+      "name": "Malapert massif",
+      "dataset": "NASA LOLA PGDA 78 Site23 (5 m)",
+      "detailed": true,
+      "context": "One of NASA's nine Artemis candidate regions",
+      "approximate": false,
+      "lat": -85.99581040294903,
+      "lon": 2.0435831950220473,
+      "best_index": 4582,
+      "best_sun_pct_2027": 80.26195754116962
+    },
+    {
+      "key": "leibnitz_beta",
+      "name": "Leibnitz beta / Mons Mouton",
+      "dataset": "NASA LOLA PGDA 78 Site20v2 (5 m)",
+      "detailed": true,
+      "context": "Mons Mouton area: Artemis candidate region; IM-2 landed nearby",
+      "approximate": false,
+      "lat": -85.41303089254929,
+      "lon": 31.702698481823074,
+      "best_index": 4752,
+      "best_sun_pct_2027": 74.48431199794754
+    },
+    {
+      "key": "im2_replay",
+      "name": "IM-2 Athena (replay)",
+      "lat": -84.78,
+      "lon": 29.13,
+      "dataset": "NASA LOLA PGDA 90 (80 m)",
+      "detailed": false,
+      "context": "Intended site per LROC; landed about 250 m away on 6 Mar 2025",
+      "approximate": false
+    },
+    {
+      "key": "chandrayaan3",
+      "name": "Chandrayaan-3 Shiv Shakti",
+      "lat": -69.373,
+      "lon": 32.319,
+      "dataset": "Flat horizon (outside 80-90 S maps)",
+      "detailed": false,
+      "context": "ISRO lander, 23 Aug 2023; validation case",
+      "approximate": false
+    }
+  ]
+}
