@@ -69,8 +69,8 @@ sites), Stand on the rim (first-person view, your-city comparison, sonified luna
   fail on the unseen site (78–96% vs 90 ± 2%), so it is used only as a screener with physics verification.
   Gate demo: 276,480 candidates per site; 1.3% / 1.9% / 27% sent to the exact simulator; all 20 AI top picks survive
   exactly at every site; physics changed the #1 pick at 2 of 3 sites. HELIOS fails all gates (median 0.23–0.83° vs
-  0.05°) and is not used. Main-chat audit added landing slopes to the AI top-10 lists: 8/10 (Shackleton), 7/10
-  (Malapert), 6/10 (Leibnitz beta) are steeper than 8°, so Plan B (slope-filtered) is the landing recommendation.
+  0.05°) and is not used. Main-chat audit added landing slopes to the AI top-10 lists: 8/10 (Shackleton), 8/10
+  (Malapert), 7/10 (Leibnitz beta) are steeper than 8°, so Plan B (slope-filtered) is the landing recommendation.
 
 ## Data that is NOT in Git (must be attached to chats that need it)
 - `pipeline/out/ephemeris_hourly.npz`, `pipeline/out/horizons_<site>.npz` — in "Prompt 1/2 - pipeline outputs.zip".
