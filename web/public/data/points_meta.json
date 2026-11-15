@@ -1,0 +1,72 @@
+{
+ "slope_source": "PGDA 78 5 m map, 3x3 Horn window (15 m baseline)",
+ "landing_slope_limit_deg": 8.0,
+ "sites": {
+  "shackleton": {
+   "best": {
+    "slope_deg": 9.28,
+    "landable": false
+   },
+   "good": {
+    "slope_deg": 25.93,
+    "landable": false
+   },
+   "typical": {
+    "slope_deg": 14.51,
+    "landable": false
+   },
+   "poor": {
+    "slope_deg": 31.37,
+    "landable": false
+   },
+   "dispersion_aim": {
+    "slope_deg": 9.28,
+    "landable": false
+   }
+  },
+  "malapert": {
+   "best": {
+    "slope_deg": 3.37,
+    "landable": true
+   },
+   "good": {
+    "slope_deg": 17.54,
+    "landable": false
+   },
+   "typical": {
+    "slope_deg": 18.03,
+    "landable": false
+   },
+   "poor": {
+    "slope_deg": 17.04,
+    "landable": false
+   },
+   "dispersion_aim": {
+    "slope_deg": 3.37,
+    "landable": true
+   }
+  },
+  "leibnitz_beta": {
+   "best": {
+    "slope_deg": 6.34,
+    "landable": true
+   },
+   "good": {
+    "slope_deg": 5.01,
+    "landable": true
+   },
+   "typical": {
+    "slope_deg": 25.86,
+    "landable": false
+   },
+   "poor": {
+    "slope_deg": 9.61,
+    "landable": false
+   },
+   "dispersion_aim": {
+    "slope_deg": 6.34,
+    "landable": true
+   }
+  }
+ }
+}

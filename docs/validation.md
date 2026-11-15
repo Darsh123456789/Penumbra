@@ -138,3 +138,26 @@ Slope source: PGDA 78 5 m map, 3x3 Horn window (15 m baseline).
 One-at-a-time swaps; bars need not add up. Earth's path cannot change sunlight (measured 0), only the comms metric link_pct. The terrain bar is large and positive because a flat 0° horizon hides most or all of the Sun on these dates: the best-lit points sit high enough that their real horizon dips below 0° in the Sun's direction.
 Blocking ridge: at Shackleton the blocker is a real ridge 9.9 km away, 208 m above the panel (horizon 1.04°). At Malapert and Leibnitz beta the highest-angle sample along that azimuth is the point's own downslope, 0.2-0.4 km away and below the panel (horizon -2.25° and -0.93°): there the Sun was simply too low, not hidden by a ridge. Ridge-raycast elevations match the stored grid horizons to 0.002°.
 Note: on the 5 m map the Shackleton best-lit point itself has a 9.3° slope, above the 8° landing limit.
+
+### 8g. Plan B revision (main chat audit)
+The first Plan B search allowed landing up to 5 days EARLIER than the slipped date, which is impossible after a
+launch slip, and ranked non-surviving options by blackout length (every one failed ~11 h after landing). Revised
+(`07_planb.py`): landing on the slipped date or up to 30 days later only; survivors ranked by earliest landing, then
+shortest direct-to-Earth blackout, then most sunlight; non-survivors by time to the battery floor.
+
+| Site | Original point (slipped date) | Survivable combinations | Option A |
+| --- | --- | --- | --- |
+| Shackleton rim | fails (slope 9.3°, above 8°) | 2 of 775 | 162 m at 336°, land +6 d, survives, 91% sunlit |
+| Malapert massif | fails; original point works again at +18 d | 28 of 3,658 | 1,095 m, land +18 d, survives, 99.8% sunlit |
+| Leibnitz beta / Mons Mouton | fails; original point works again at +18 d | 8 of 2,418 | 535 m at 328°, land +17 d, survives, 98.8% sunlit |
+
+Landing slopes at the points the app shows (`pipeline/10_point_meta.py`, 5 m LOLA, Horn 3x3): best-lit points
+9.3° (Shackleton, too steep), 3.4° (Malapert), 6.3° (Leibnitz beta); "top 5%" and "typical" points 14-32° except
+Leibnitz beta's top-5% point (5.0°).
+
+### 8h. Browser engine audit
+Headless test of 108 Mission Board states (3 sites x 4 points x 3 landers x 3 dates): all render, and the in-browser
+TypeScript simulator agrees with the Python pipeline on survival in all 108. The Trust tab re-runs 365 landing days
+live (365/365 agreement). New derived outputs: sunrise/Earthrise times when landing in darkness; darkness split into
+terrain-caused vs below a bare Moon's horizon (dip from the point's height); smallest battery that survives a date
+(sequent-peak drawdown of cumulative net energy / usable fraction above the floor).

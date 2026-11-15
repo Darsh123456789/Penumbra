@@ -141,16 +141,25 @@ function panelFactor(layout: string, az: number, el: number): number {
 export interface SimResult { sunlit_pct: number; earth_pct: number; both_pct: number; link_pct: number; longest_night_h: number;
   longest_blackout_h: number; energy_in_kwh: number; min_soc: number; hours_to_floor: number | null; survives: boolean;
   sunset_in_h: number | null; earthset_in_h: number | null;
+  sun_up_at_start: boolean; earth_up_at_start: boolean; sunrise_in_h: number | null; earthrise_in_h: number | null;
+  dark_terrain_h: number; dark_below_horizontal_h: number; earth_terrain_h: number; earth_below_horizontal_h: number;
+  sun_el_min: number; sun_el_max: number; load_kwh: number; battery_needed_wh: number;
   series: { t_h: number[]; f_sun: number[]; earth_up: boolean[]; dsn: boolean[]; link: boolean[]; soc: number[]; sun_az: number[]; sun_el: number[]; earth_az: number[]; earth_el: number[] } }
 
-export function simulate(e: Ephem, d: Dsn, H: Float64Array, lat: number, lon: number, startIso: string, days: number, p: Preset): SimResult {
+// geoHorizonDeg: horizon of a bare, smooth Moon for an observer at this height (negative: the dip). Darkness with the
+// Sun above it but below the LOLA horizon is caused by terrain; below it, by the Moon's curvature alone.
+export function bareMoonDip(heightAboveDatumM: number): number { return -Math.acos(R_M / (R_M + Math.max(0, heightAboveDatumM))) * 180 / Math.PI; }
+export function simulate(e: Ephem, d: Dsn, H: Float64Array, lat: number, lon: number, startIso: string, days: number, p: Preset, geoHorizonDeg = 0): SimResult {
   const et0 = utcToEt(startIso), n = Math.round(days * 86400 / STEP_S), dt = STEP_S / 3600;
   const S = siteVector(lat, lon), M = enu(lat, lon);
   const ser = { t_h: [] as number[], f_sun: [] as number[], earth_up: [] as boolean[], dsn: [] as boolean[], link: [] as boolean[], soc: [] as number[],
     sun_az: [] as number[], sun_el: [] as number[], earth_az: [] as number[], earth_el: [] as number[] };
   let energy = p.battery_wh * (p.initial_soc ?? 1), minSoc = 1, tFloor: number | null = null, ein = 0;
   let lit = 0, eup = 0, both = 0, lk = 0, night = 0, nightMax = 0, bo = 0, boMax = 0;
-  let sunset: number | null = null, earthset: number | null = null;
+  let sunset: number | null = null, earthset: number | null = null, sunrise: number | null = null, earthrise: number | null = null;
+  let dTer = 0, dHor = 0, eTer = 0, eHor = 0, elMin = 90, elMax = -90, loadE = 0;
+  let cum = 0, peak = 0, drawdown = 0; // sequent-peak: smallest battery that never drops below the floor
+  let sunUp0 = false, earthUp0 = false;
   for (let i = 0; i < n; i++) {
     const et = et0 + i * STEP_S;
     const s = interp(e.sun, e, et), q = interp(e.earth, e, et);
@@ -162,6 +171,14 @@ export function simulate(e: Ephem, d: Dsn, H: Float64Array, lat: number, lon: nu
     const pin = p.panel_eff * S0 * p.panel_area_m2 * f * panelFactor(p.panel_layout, sa, se);
     ein += pin * dt;
     const load = p.load_w + (f < 0.05 ? p.heater_w : 0);
+    loadE += load * dt;
+    cum += (pin * p.charge_eff - load) * dt; peak = Math.max(peak, cum); drawdown = Math.max(drawdown, peak - cum);
+    if (i === 0) { sunUp0 = f > 0.5; earthUp0 = up; }
+    if (f < 0.5) { if (se > geoHorizonDeg) dTer++; else dHor++; }
+    if (!up) { if (ee > geoHorizonDeg) eTer++; else eHor++; }
+    elMin = Math.min(elMin, se); elMax = Math.max(elMax, se);
+    if (sunrise === null && !sunUp0 && f > 0.5) sunrise = i * dt;
+    if (earthrise === null && !earthUp0 && up) earthrise = i * dt;
     energy = Math.min(p.battery_wh, Math.max(0, energy + (pin * p.charge_eff - load) * dt));
     const soc = energy / p.battery_wh;
     minSoc = Math.min(minSoc, soc);
@@ -169,14 +186,18 @@ export function simulate(e: Ephem, d: Dsn, H: Float64Array, lat: number, lon: nu
     if (f > 0.5) lit++; if (up) eup++; if (f > 0.5 && up) both++; if (link) lk++;
     night = f < 0.5 ? night + 1 : 0; nightMax = Math.max(nightMax, night);
     bo = !link ? bo + 1 : 0; boMax = Math.max(boMax, bo);
-    if (sunset === null && f < 0.5) sunset = i * dt;
-    if (earthset === null && !up) earthset = i * dt;
+    if (sunset === null && sunUp0 && f < 0.5) sunset = i * dt;
+    if (earthset === null && earthUp0 && !up) earthset = i * dt;
     ser.t_h.push(i * dt); ser.f_sun.push(f); ser.earth_up.push(up); ser.dsn.push(ds); ser.link.push(link); ser.soc.push(soc);
     ser.sun_az.push(sa); ser.sun_el.push(se); ser.earth_az.push(ea); ser.earth_el.push(ee);
   }
   return { sunlit_pct: 100 * lit / n, earth_pct: 100 * eup / n, both_pct: 100 * both / n, link_pct: 100 * lk / n,
     longest_night_h: nightMax * dt, longest_blackout_h: boMax * dt, energy_in_kwh: ein / 1000, min_soc: minSoc,
-    hours_to_floor: tFloor, survives: tFloor === null, sunset_in_h: sunset, earthset_in_h: earthset, series: ser };
+    hours_to_floor: tFloor, survives: tFloor === null, sunset_in_h: sunset, earthset_in_h: earthset,
+    sun_up_at_start: sunUp0, earth_up_at_start: earthUp0, sunrise_in_h: sunrise, earthrise_in_h: earthrise,
+    dark_terrain_h: dTer * dt, dark_below_horizontal_h: dHor * dt, earth_terrain_h: eTer * dt, earth_below_horizontal_h: eHor * dt,
+    sun_el_min: elMin, sun_el_max: elMax, load_kwh: loadE / 1000,
+    battery_needed_wh: drawdown / (1 - p.soc_floor), series: ser };
 }
 
 export const PRESETS: Record<string, Preset> = {

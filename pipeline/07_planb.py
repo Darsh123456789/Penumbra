@@ -33,7 +33,7 @@ SITES = {"shackleton": "Site04_final_adj_5mpp_surf.tif", "malapert": "Site23_fin
          "leibnitz_beta": "Site20v2_final_adj_5mpp_surf.tif"}
 PRESET = "medium_vertical"
 PLANNED, SLIPPED, SLIP_DAYS, MISSION_DAYS = "2027-02-14T00:00:00", "2027-02-26T00:00:00", 12, 14
-RADIUS_M, MAX_SLOPE, WINDOW = 2000.0, 8.0, 5
+RADIUS_M, MAX_SLOPE, WINDOW = 2000.0, 8.0, 30
 WEB = os.path.join(os.path.dirname(g.HERE), "web", "public", "data")
 DEM_DIR = os.environ.get("PENUMBRA_DATA", os.path.join(os.path.dirname(g.HERE), "data", "dem"))
 
@@ -77,7 +77,11 @@ def bearing(x0, y0, x1, y1):
 
 
 def rank_key(r):
-    return (0 if r["survives"] else 1, r["longest_blackout_h"], -r["sunlit_pct"])
+    # survivors first: earliest landing, then shortest direct-to-Earth blackout, then most sunlight;
+    # non-survivors (only shown if nothing survives): longest time before the battery floor
+    if r["survives"]:
+        return (0, r["shift"], r["longest_blackout_h"], -r["sunlit_pct"])
+    return (1, -(r["hours_to_floor"] or 0.0), r["shift"], 0.0)
 
 
 def run(site, P, dsn_by_day):
@@ -104,7 +108,7 @@ def run(site, P, dsn_by_day):
     orig = sim(k0, 0)
     rows = []
     for k in ok:
-        for s in range(-WINDOW, WINDOW + 1):
+        for s in range(0, WINDOW + 1):  # after a slip you can only land on or after the new date
             r = sim(int(k), s)
             rows.append({"k": int(k), "shift": s, **{q: r[q] for q in ("survives", "sunlit_pct", "longest_blackout_h", "min_soc", "hours_to_floor")}})
     rows.sort(key=rank_key)
@@ -121,10 +125,10 @@ def run(site, P, dsn_by_day):
             "sunlit_pct": round(r["sunlit_pct"], 2), "longest_blackout_h": round(r["longest_blackout_h"], 2),
             "min_soc": round(r["min_soc"], 4), "hours_to_floor": r["hours_to_floor"]})
     n_surv = sum(r["survives"] for r in rows)
-    # context: nearest landing day (00:00 UTC) at the ORIGINAL point that survives, searching +-30 days of the slip
+    # context: first landing day (00:00 UTC) on or after the slipped date at which the ORIGINAL point survives (up to +30 d)
     nearest = None
     for a in range(0, 31):
-        for s_ in ((a, -a) if a else (0,)):
+        for s_ in (a,):
             st = g.et_to_utc(g.utc_to_et(SLIPPED) + s_ * 86400.0, 0)
             if S.simulate(d["horizon"][k0].astype(float), float(d["lat"][k0]), float(d["lon"][k0]), st,
                           MISSION_DAYS, P)["survives"]:
@@ -145,13 +149,13 @@ def run(site, P, dsn_by_day):
                      "longest_blackout_h": round(orig["longest_blackout_h"], 2), "min_soc": round(orig["min_soc"], 4),
                      "hours_to_floor": orig["hours_to_floor"],
                      "nearest_surviving_shift_days": nearest,
-                     "nearest_surviving_note": "Shift from the slipped date (searched +-30 d, 00:00 UTC) at which the original point survives 14 d; null if none."},
+                     "nearest_surviving_note": "Delay after the slipped date (searched 0 to +30 d, 00:00 UTC) at which the original point survives 14 d; null if none."},
         "options": options,
     }
     with open(os.path.join(WEB, f"planb_{site}.json"), "w") as f:
         json.dump(out, f, indent=2)
     print(f"{site:14s} {time.time() - t:5.1f} s | original on slipped date: survives={orig['survives']} "
-          f"sunlit {orig['sunlit_pct']:.1f}% blackout {orig['longest_blackout_h']:.0f} h | {len(ok)} pts x 11 days, "
+          f"sunlit {orig['sunlit_pct']:.1f}% blackout {orig['longest_blackout_h']:.0f} h | {len(ok)} pts x {WINDOW + 1} days, "
           f"{n_surv} survive | A: {options[0]['distance_m']:.0f} m @ {options[0]['bearing_deg']:.0f} deg, "
           f"shift {options[0]['date_shift_days']:+d} d, blackout {options[0]['longest_blackout_h']:.0f} h")
     return out
@@ -163,7 +167,7 @@ def main():
     steps = int(MISSION_DAYS * 86400 / S.STEP_S)
     e0 = g.utc_to_et(SLIPPED)
     dsn_by_day = {}
-    for s in range(-WINDOW, WINDOW + 1):
+    for s in range(0, WINDOW + 1):
         ets = e0 + s * 86400.0 + S.STEP_S * np.arange(steps)
         dsn_by_day[s], _ = S.dsn_visible(ets, P.get("dsn_mask_deg", 10.0))
     for site in (sys.argv[1:] or SITES):
