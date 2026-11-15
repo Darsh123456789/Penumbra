@@ -178,4 +178,4 @@ end to end (5.2× model only). HELIOS: median horizon error 0.23 / 0.64 / 0.83°
 all gates fail; not used anywhere. Gate demo (276,480 candidates per site, 14 Feb – 15 Mar 2027): 3,672 / 5,223 /
 74,656 sent to the exact simulator; all AI top-20 picks survive in the exact re-run; physics changed the #1 pick at
 Shackleton and Malapert. Main-chat audit: 5 m LOLA slopes added to the AI top-10 lists
-(`pipeline/10_point_meta.py`); 8 / 7 / 6 of 10 are steeper than 8°, because the AI search ranks by sunlight only.
+(`pipeline/10_point_meta.py`); 8 / 8 / 7 of 10 are steeper than 8°, because the AI search ranks by sunlight only.
