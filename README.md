@@ -24,7 +24,7 @@ sources and bundled with the site; the survival simulator also re-runs live in y
    "AI proposes, physics verifies".
 6. **Stand on the rim** — a first-person view of the polar Sun over the real horizon, and a lunar day as sound.
 
-## Key results
+## Key Results Gathered
 
 | Finding | Number |
 | --- | --- |
